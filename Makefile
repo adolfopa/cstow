@@ -7,7 +7,8 @@ clean:
 	cd src && $(MAKE) clean
 
 install: compile
-	install -S src/cstow $(INSTALL_DIR)
+	test ! -d $(INSTALL_DIR) && mkdir $(INSTALL_DIR) || true
+	install -Sc src/cstow $(INSTALL_DIR)/cstow
 
 test:
 	cd src && $(MAKE) test

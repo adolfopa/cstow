@@ -1,0 +1,25 @@
+CStow is a software package management tool.  Essentially, it is a
+simplified clone of GNU Stow.  The main differences between GNU Stow
+and CStow are:
+
+  1. CStow is implemented in C with almost no external dependencies.
+  It should compile in any POSIX system out of the box (if it doesn't,
+  it is a bug!).
+
+  2. CStow will never create symbolic links for directories when
+  installing packages; only files will be symlinked.  This behaviour
+  is intentional.
+
+  3. Some GNU Stow options aren't supported by CStow (-d, -t, -R, -V),
+  and only the short form of each option is recognised.
+
+The lack of dependencies makes CStow useful when you want to use GNU
+Stow but aren't allowed to (or don't want to) install Perl on the
+system.  Also, as CStow doesn't symlink directories, it works well in
+conjunction with other tools like FreeBSD ports o NetBSD pkgsrc; this
+way, you can have all your local software in /usr/local instead of
+having multiple local trees.
+
+If you don't mind having Perl around, or don't use other package
+management tools that might have problems with symlinked directories,
+you shouldn't use CStow; GNU Stow is more mature and featureful.

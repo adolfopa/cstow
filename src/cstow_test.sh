@@ -51,7 +51,8 @@ D_flag_unstows_package_head() {
 D_flag_unstows_package_body() {
     create_test_package
 
-    cd cstow && ./cstow pkg
+    cd cstow
+    atf_check -s exit:0 cstow pkg
 
     atf_check -s exit:0 cstow -D pkg
 
