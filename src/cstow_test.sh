@@ -61,12 +61,53 @@ D_flag_unstows_package_body() {
     check_links dont_exist a/foo.bin x/y/bar.bin a/b/c/baz.bin
 }
 
+atf_test_case v_flag_outputs_each_action
+v_flag_outputs_each_action_head() {
+    atf_set "descr" "With the -v flag, each action performed is output to stdout"
+    atf_set "require.progs" "cstow"
+}
+v_flag_outputs_each_action_body() {
+    create_test_package
+
+    cd cstow
+    atf_check -s exit:0 -o save:stdout.log -e empty cstow -v pkg
+
+    ## 8 actions were executed in total.
+    atf_check -s exit:0 test $(wc -l stdout.log | awk '{print $1}') = 8
+
+    ## 5 directories were created.
+    atf_check -s exit:0 -o save:grepmk.log -e empty grep mkdir stdout.log
+    atf_check -s exit:0 test $(wc -l grepmk.log | awk '{print $1}') = 5
+
+    ## 3 files were linked.
+    atf_check -s exit:0 -o save:grepln.log -e empty grep ln stdout.log
+    atf_check -s exit:0 test $(wc -l grepln.log | awk '{print $1}') = 3
+}
+
+atf_test_case n_flag_only_pretends
+n_flag_only_pretends_head() {
+    atf_set "descr" "With the -n flag, no actions are executed."
+    atf_set "require.progs" "cstow"
+}
+n_flag_only_pretends_body() {
+    create_test_package
+
+    cd cstow
+    atf_check -s exit:0 cstow -n pkg
+
+    cd ..
+    check_directories dont_exist a a/b a/b/c x x/y
+    check_links dont_exist a/foo.bin x/y/bar.bin a/b/c/baz.bin
+}
+
 atf_init_test_cases() {
     atf_add_test_case with_no_args_fails
     atf_add_test_case D_flag_with_no_arg_fails
     atf_add_test_case h_flag_succeeds
     atf_add_test_case without_flags_stows_package
     atf_add_test_case D_flag_unstows_package
+    atf_add_test_case v_flag_outputs_each_action
+    atf_add_test_case n_flag_only_pretends
 }
 
 check_file_type() {
