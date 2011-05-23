@@ -203,7 +203,7 @@ detect_conflict(struct options *options, char *destination)
      status = lstat(destination, &buf);
 
      if (status == -1 && errno != ENOENT) {
-          err(EXIT_FAILURE, NULL);
+          err(EXIT_FAILURE, "couldn't lstat file %s", destination);
      } else if (status != -1) {
        if (S_ISLNK(buf.st_mode)) {
             char linked_file[_POSIX_PATH_MAX];
@@ -213,7 +213,7 @@ detect_conflict(struct options *options, char *destination)
             len = readlink(destination, linked_file, _POSIX_PATH_MAX);
 
             if (len == -1)
-                 err(EXIT_FAILURE, NULL);
+                 err(EXIT_FAILURE, "couldn't read link %s", destination);
 
             linked_file[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
 
@@ -240,12 +240,12 @@ create_link(struct options *options,
      assert(destination != NULL);
      assert(filename != NULL);
 
-     real_src = realpath(source, NULL);
+     real_src = PRETENDING(options) ? xstrdup(source) : realpath(source, NULL);
 
      if (real_src == NULL && !PRETENDING(options))
           err(EXIT_FAILURE, "couldn't obtain realpath for %s", source);
 
-     real_dest = realpath(destination, NULL);
+     real_dest = PRETENDING(options) ? xstrdup(destination) : realpath(destination, NULL);
 
      if (real_dest == NULL && !PRETENDING(options))
           err(EXIT_FAILURE, "couldn't obtain realpath for %s", destination);
