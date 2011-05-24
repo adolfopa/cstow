@@ -412,7 +412,7 @@ usage(int status)
 {
      FILE *stream = status ? stderr : stdout;
 
-     (void)fprintf(stream, "Usage: cstow [-cDhnv] <package-name>\n");
+     (void)fprintf(stream, "Usage: cstow [-cDhnRv] <package-name>\n");
 
      exit(status);
 }

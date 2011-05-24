@@ -1,4 +1,5 @@
 CFLAGS = -ansi -pedantic -Wall -Werror -Wextra -O2
+
 cstow: cstow.o
 	cc $(CFLAGS) -o cstow cstow.o
 cstow.o:
