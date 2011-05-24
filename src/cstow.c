@@ -51,7 +51,7 @@
 #include <string.h>
 #include <unistd.h>
 
-enum mode { INSTALL, UNINSTALL };
+enum mode { INSTALL, UNINSTALL, REINSTALL };
 
 struct options {
      int conflicts;
@@ -69,6 +69,7 @@ struct options {
 #define PRETENDING(o) ((o)->pretend)
 #define INSTALLING(o) ((o)->operation_mode == INSTALL)
 #define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
+#define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
 
 static char *append_path(char *, char *);
 static void create_dir(struct options *, char *, int);
@@ -429,7 +430,7 @@ options_init(struct options *options, int argc, char **argv)
      options->operation_mode = INSTALL;
      options->verbose = options->pretend = options->conflicts = 0;
 
-     while ((ch = getopt(argc, argv, "cDhnv")) != -1)
+     while ((ch = getopt(argc, argv, "cDhnRv")) != -1)
           switch (ch) {
           case 'c':
                options->conflicts = options->pretend = 1;
@@ -443,6 +444,9 @@ options_init(struct options *options, int argc, char **argv)
           case 'n':
                options->pretend = 1;
                break;
+	  case 'R':
+	       options->operation_mode = REINSTALL;
+	       break;
           case 'v':
                options->verbose = 1;
                break;
@@ -491,7 +495,14 @@ main(int argc, char **argv)
 
      options_init(&options, argc, argv);
 
-     process_directory(&options, options.package_dir, options.target_dir);
+     if (REINSTALLING(&options)) {
+	  options.operation_mode = UNINSTALL;
+	  process_directory(&options, options.package_dir, options.target_dir);
+	  options.operation_mode = INSTALL;
+	  process_directory(&options, options.package_dir, options.target_dir);
+     } else {
+	  process_directory(&options, options.package_dir, options.target_dir);
+     }
 
      options_free(&options);
 

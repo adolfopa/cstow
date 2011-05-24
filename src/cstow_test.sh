@@ -11,7 +11,7 @@ with_no_args_fails_body() {
 
 atf_test_case D_flag_with_no_arg_fails
 D_flag_with_no_arg_fails_head() {
-    atf_set "descr" "The D flag requires an argument."
+    atf_set "descr" "The -D flag requires an argument."
     atf_set "require.progs" "cstow"
 }
 D_flag_with_no_arg_fails_body() {
@@ -20,7 +20,7 @@ D_flag_with_no_arg_fails_body() {
 
 atf_test_case h_flag_succeeds
 h_flag_succeeds_head() {
-    atf_set "descr" "The h flag always succeeds."
+    atf_set "descr" "The -h flag always succeeds."
     atf_set "require.progs" "cstow"
 }
 h_flag_succeeds_body() {
@@ -100,6 +100,25 @@ n_flag_only_pretends_body() {
     check_links dont_exist a/foo.bin x/y/bar.bin a/b/c/baz.bin
 }
 
+atf_test_case R_flag_restows_package
+R_flag_restows_package_head() {
+    atf_set "descr" "With the -R flag, the package is unstowed and restowed."
+    atf_set "require.progs" "cstow"
+}
+R_flag_restows_package_body() {
+    create_test_package
+
+    cd cstow
+    atf_check -s exit:0 cstow pkg
+
+    touch pkg/quux.bin
+    atf_check -s exit:0 cstow -R pkg
+
+    cd ..
+    check_directories exist a a/b a/b/c x x/y
+    check_links exist a/foo.bin x/y/bar.bin a/b/c/baz.bin quux.bin
+}
+
 atf_init_test_cases() {
     atf_add_test_case with_no_args_fails
     atf_add_test_case D_flag_with_no_arg_fails
@@ -108,6 +127,7 @@ atf_init_test_cases() {
     atf_add_test_case D_flag_unstows_package
     atf_add_test_case v_flag_outputs_each_action
     atf_add_test_case n_flag_only_pretends
+    atf_add_test_case R_flag_restows_package
 }
 
 check_file_type() {

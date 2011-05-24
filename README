@@ -10,7 +10,7 @@ and CStow are:
   installing packages; only files will be symlinked.  This behaviour
   is intentional.
 
-  3. Some GNU Stow options aren't supported by CStow (-d, -t, -R, -V),
+  3. Some GNU Stow options aren't supported by CStow (-d, -t, -V),
   and only the short form of each option is recognised.
 
 The lack of dependencies makes CStow useful when you want to use GNU
