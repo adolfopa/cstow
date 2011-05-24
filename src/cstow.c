@@ -412,7 +412,7 @@ usage(int status)
 {
      FILE *stream = status ? stderr : stdout;
 
-     (void)fprintf(stream, "Usage: cstow [-cDhnRv] <package-name>\n");
+     (void)fprintf(stream, "Usage: cstow [-cdDhnRtv] <package-name>\n");
 
      exit(status);
 }
@@ -420,7 +420,7 @@ usage(int status)
 static void
 options_init(struct options *options, int argc, char **argv)
 {
-     int ch;
+     int ch, t_flag;
      size_t len;
 
      assert(options != NULL);
@@ -430,11 +430,33 @@ options_init(struct options *options, int argc, char **argv)
      options->operation_mode = INSTALL;
      options->verbose = options->pretend = options->conflicts = 0;
 
-     while ((ch = getopt(argc, argv, "cDhnRv")) != -1)
+     options->source_dir = NULL;
+     options->target_dir = NULL;
+
+     t_flag = 0; /* Whether the -t flag was found or not. */
+
+     while ((ch = getopt(argc, argv, "cd:DhnRt:v")) != -1)
           switch (ch) {
           case 'c':
                options->conflicts = options->pretend = 1;
                break;
+	  case 'd':
+	       if (options->source_dir != NULL)
+		    free(options->source_dir);
+	       options->source_dir = xstrdup(optarg);
+
+	       /*
+		* If the target dir was set by a previous -d flag,
+		* reset it.
+		*/
+	       if (options->target_dir != NULL && !t_flag) {
+		    free(options->target_dir);
+		    options->target_dir = NULL;
+	       }
+
+	       if (options->target_dir == NULL)
+		    options->target_dir = xstrdup(dirname(options->source_dir));
+	       break;
           case 'D':
                options->operation_mode = UNINSTALL;
                break;
@@ -446,6 +468,12 @@ options_init(struct options *options, int argc, char **argv)
                break;
 	  case 'R':
 	       options->operation_mode = REINSTALL;
+	       break;
+	  case 't':
+	       if (options->target_dir != NULL)
+		    free(options->target_dir);
+	       options->target_dir = xstrdup(optarg);
+	       t_flag = 1;
 	       break;
           case 'v':
                options->verbose = 1;
@@ -460,12 +488,24 @@ options_init(struct options *options, int argc, char **argv)
      if (optind >= argc)
           usage(EXIT_FAILURE);
 
-     options->source_dir = xmalloc(sizeof(char) * _POSIX_PATH_MAX);
+     /*
+      * If no stow directory was given in the command line, use the
+      * current directory.
+      */
+     if (options->source_dir == NULL) {
+	  options->source_dir = xmalloc(sizeof(char) * _POSIX_PATH_MAX);
 
-     if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
-          err(EXIT_FAILURE, NULL);
+	  if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
+	       err(EXIT_FAILURE, NULL);
+     }
 
-     options->target_dir = xstrdup("..");
+     /*
+      * If no target directory was given in the command line, use
+      * source directory parent.
+      */
+     if (options->target_dir == NULL)
+	  options->target_dir = xstrdup(dirname(options->source_dir));
+
      options->package_name = xstrdup(argv[optind]);
 
      /* Remove trailing '/' from package name. */

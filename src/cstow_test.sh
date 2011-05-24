@@ -119,6 +119,39 @@ R_flag_restows_package_body() {
     check_links exist a/foo.bin x/y/bar.bin a/b/c/baz.bin quux.bin
 }
 
+atf_test_case d_flag_changes_stow_dir
+d_flag_changes_stow_dir_head() {
+    atf_set "descr" "With the -d flag, the package is read from the given directory."
+    atf_set "require.progs" "cstow"
+}
+d_flag_changes_stow_dir_body() {
+    create_test_package
+
+    atf_check -s exit:0 cstow -d cstow pkg
+
+    check_directories exist a a/b a/b/c x x/y
+    check_links exist a/foo.bin x/y/bar.bin a/b/c/baz.bin
+}
+
+atf_test_case t_flag_changes_target_dir
+t_flag_changes_target_dir_head() {
+    atf_set "descr" "With the -t flag, the package is installed into the given directory."
+    atf_set "require.progs" "cstow"
+}
+t_flag_changes_target_dir_body() {
+    create_test_package
+    
+    mkdir other_dir && cd other_dir
+    cd ..
+
+    cd cstow
+    atf_check -s exit:0 cstow -t ../other_dir pkg
+
+    cd ../other_dir
+    check_directories exist a a/b a/b/c x x/y
+    check_links exist a/foo.bin x/y/bar.bin a/b/c/baz.bin
+}
+
 atf_init_test_cases() {
     atf_add_test_case with_no_args_fails
     atf_add_test_case D_flag_with_no_arg_fails
@@ -128,6 +161,8 @@ atf_init_test_cases() {
     atf_add_test_case v_flag_outputs_each_action
     atf_add_test_case n_flag_only_pretends
     atf_add_test_case R_flag_restows_package
+    atf_add_test_case d_flag_changes_stow_dir
+    atf_add_test_case t_flag_changes_target_dir
 }
 
 check_file_type() {
