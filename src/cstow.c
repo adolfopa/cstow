@@ -424,7 +424,7 @@ directory_name(char *path)
      char *name;
      
      copy = xstrdup(path);
-     name = xstrdup(dirname(path));
+     name = xstrdup(dirname(copy));
      free(copy);
 
      return name;
