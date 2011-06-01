@@ -417,6 +417,19 @@ usage(int status)
      exit(status);
 }
 
+static char *
+directory_name(char *path)
+{
+     char *copy;
+     char *name;
+     
+     copy = xstrdup(path);
+     name = xstrdup(dirname(path));
+     free(copy);
+
+     return name;
+}
+
 static void
 options_init(struct options *options, int argc, char **argv)
 {
@@ -455,7 +468,7 @@ options_init(struct options *options, int argc, char **argv)
 	       }
 
 	       if (options->target_dir == NULL)
-		    options->target_dir = xstrdup(dirname(options->source_dir));
+		    options->target_dir = directory_name(options->source_dir);
 	       break;
           case 'D':
                options->operation_mode = UNINSTALL;
@@ -504,7 +517,7 @@ options_init(struct options *options, int argc, char **argv)
       * source directory parent.
       */
      if (options->target_dir == NULL)
-	  options->target_dir = xstrdup(dirname(options->source_dir));
+	  options->target_dir = directory_name(options->source_dir);
 
      options->package_name = xstrdup(argv[optind]);
 
