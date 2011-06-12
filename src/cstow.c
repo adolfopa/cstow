@@ -232,38 +232,24 @@ static void
 create_link(struct options *options,
             char *source, char *destination, char *filename)
 {
-     char *real_src;
-     char *real_dest;
-     char *full_dest;
+     char *link_target;
 
      assert(options != NULL);
      assert(source != NULL);
      assert(destination != NULL);
      assert(filename != NULL);
 
-     real_src = PRETENDING(options) ? xstrdup(source) : realpath(source, NULL);
+     link_target = append_path(destination, filename);
 
-     if (real_src == NULL && !PRETENDING(options))
-          err(EXIT_FAILURE, "couldn't obtain realpath for %s", source);
-
-     real_dest = PRETENDING(options) ? xstrdup(destination) : realpath(destination, NULL);
-
-     if (real_dest == NULL && !PRETENDING(options))
-          err(EXIT_FAILURE, "couldn't obtain realpath for %s", destination);
-
-     full_dest = append_path(real_dest, filename);
-     
      if (BEING_VERBOSE(options))
-          (void)printf("ln -s %s %s\n", real_src, full_dest);
+          (void)printf("ln -s %s %s\n", source, link_target);
 
-     detect_conflict(options, full_dest);
+     detect_conflict(options, link_target);
 
-     if (!PRETENDING(options) && symlink(real_src, full_dest) == -1)
-          err(EXIT_FAILURE, "couldn't link %s to %s", real_src, full_dest);
+     if (!PRETENDING(options) && symlink(source, link_target) == -1)
+          err(EXIT_FAILURE, "couldn't link %s to %s", source, link_target);
 
-     free(full_dest);
-     free(real_dest);
-     free(real_src);
+     free(link_target);
 }
 
 static void
@@ -402,8 +388,10 @@ process_package(struct options *options, char *source, char *destination)
      } else {
           if (INSTALLING(options))
                create_link(options, source, destination, dirname);
-          if (UNINSTALLING(options))
+          else if (UNINSTALLING(options))
                delete_link(options, destination, dirname);
+	  else
+	       err(EXIT_FAILURE, "Assertion failed: Neither installing or uninstalling.");
      }
 }
 
@@ -456,7 +444,10 @@ options_init(struct options *options, int argc, char **argv)
 	  case 'd':
 	       if (options->source_dir != NULL)
 		    free(options->source_dir);
-	       options->source_dir = xstrdup(optarg);
+	       options->source_dir = realpath(optarg, NULL);
+
+	       if (options->source_dir == NULL)
+		    err(EXIT_FAILURE, NULL);
 
 	       /*
 		* If the target dir was set by a previous -d flag,
@@ -485,7 +476,12 @@ options_init(struct options *options, int argc, char **argv)
 	  case 't':
 	       if (options->target_dir != NULL)
 		    free(options->target_dir);
-	       options->target_dir = xstrdup(optarg);
+
+	       options->target_dir = realpath(optarg, NULL);
+
+	       if (options->target_dir == NULL)
+		    err(EXIT_FAILURE, NULL);
+
 	       t_flag = 1;
 	       break;
           case 'v':
