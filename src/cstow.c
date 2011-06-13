@@ -71,13 +71,16 @@ struct options {
 #define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
 #define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
 
+static char *absolute_path(char *);
 static char *append_path(char *, char *);
 static void create_dir(struct options *, char *, int);
 static void create_link(struct options *, char *, char *, char *);
 static void delete_dir(struct options *, char *);
 static void delete_link(struct options *, char *, char *);
 static void detect_conflict(struct options *, char *);
+static char *directory_name(char *);
 int main(int, char **);
+static void make_absolute_path(char **);
 static void options_free(struct options *);
 static void options_init(struct options *, int, char **);
 static void process_directory(struct options *, char *, char *);
@@ -410,12 +413,43 @@ directory_name(char *path)
 {
      char *copy;
      char *name;
-     
+
+     assert(path != NULL);
+
      copy = xstrdup(path);
      name = xstrdup(dirname(copy));
      free(copy);
 
      return name;
+}
+
+static char *
+absolute_path(char *path)
+{
+     char *abs;
+
+     assert(path != NULL);
+
+     abs = realpath(path, NULL);
+
+     if (abs == NULL)
+	  err(EXIT_FAILURE, "%s", path);
+
+     return abs;
+}
+
+static void
+make_absolute_path(char **path)
+{
+     char *abs;
+
+     assert(path != NULL);
+     assert(*path != NULL);
+
+     abs = absolute_path(*path);
+
+     free(*path);
+     *path = abs;
 }
 
 static void
@@ -444,10 +478,7 @@ options_init(struct options *options, int argc, char **argv)
 	  case 'd':
 	       if (options->source_dir != NULL)
 		    free(options->source_dir);
-	       options->source_dir = realpath(optarg, NULL);
-
-	       if (options->source_dir == NULL)
-		    err(EXIT_FAILURE, NULL);
+	       options->source_dir = xstrdup(optarg);
 
 	       /*
 		* If the target dir was set by a previous -d flag,
@@ -477,10 +508,7 @@ options_init(struct options *options, int argc, char **argv)
 	       if (options->target_dir != NULL)
 		    free(options->target_dir);
 
-	       options->target_dir = realpath(optarg, NULL);
-
-	       if (options->target_dir == NULL)
-		    err(EXIT_FAILURE, NULL);
+	       options->target_dir = xstrdup(optarg);
 
 	       t_flag = 1;
 	       break;
@@ -508,12 +536,16 @@ options_init(struct options *options, int argc, char **argv)
 	       err(EXIT_FAILURE, NULL);
      }
 
+     make_absolute_path(&options->source_dir);
+
      /*
       * If no target directory was given in the command line, use
       * source directory parent.
       */
      if (options->target_dir == NULL)
 	  options->target_dir = directory_name(options->source_dir);
+
+     make_absolute_path(&options->target_dir);
 
      options->package_name = xstrdup(argv[optind]);
 
