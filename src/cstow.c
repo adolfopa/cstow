@@ -51,6 +51,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "path.h"
+#include "util.h"
+
 enum mode { INSTALL, UNINSTALL, REINSTALL };
 
 struct options {
@@ -71,79 +74,18 @@ struct options {
 #define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
 #define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
 
-static char *absolute_path(char *);
-static char *append_path(char *, char *);
 static void create_dir(struct options *, char *, int);
 static void create_link(struct options *, char *, char *, char *);
 static void delete_dir(struct options *, char *);
 static void delete_link(struct options *, char *, char *);
 static void detect_conflict(struct options *, char *);
-static char *directory_name(char *);
 int main(int, char **);
-static void make_absolute_path(char **);
 static void options_free(struct options *);
 static void options_init(struct options *, int, char **);
 static void process_directory(struct options *, char *, char *);
 static void process_package(struct options *, char *, char *);
 static void usage(int);
-static void *xmalloc(size_t);
-static void *xstrdup(char *);
 
-static void *
-xmalloc(size_t n)
-{
-     void *p;
-
-     assert(n > 0);
-
-     p = malloc(n);
-
-     if (p == NULL)
-          err(EXIT_FAILURE, NULL);
-
-     return p;
-}
-
-static void *
-xstrdup(char *s)
-{
-     void *p;
-
-     assert(s != NULL);
-
-     p = strdup(s);
-
-     if (p == NULL)
-          err(EXIT_FAILURE, NULL);
-
-     return p;
-}
-
-static char *
-append_path(char *s, char *t)
-{
-     char * result;
-     size_t slen;
-     size_t tlen;
-
-     assert(s != NULL);
-     assert(t != NULL);
-
-     slen = strlen(s);
-     tlen = strlen(t);
-     result = xmalloc(sizeof(char) * (slen + tlen + 2));
-
-     (void)memcpy(result, s, slen);
-
-     if (*t != '/' && s[slen - 1] != '/')
-          result[slen] = '/';
-     
-     (void)memcpy(result + slen + 1, t, tlen + 1);
-
-     result[slen + tlen + 1] = '\0';
-
-     return result;
-}
 
 static void
 process_directory(struct options *options, char *source, char *destination)
@@ -236,7 +178,8 @@ create_link(struct options *options,
             char *source, char *destination, char *filename)
 {
      char *link_target;
-
+     char *rpath;
+     
      assert(options != NULL);
      assert(source != NULL);
      assert(destination != NULL);
@@ -244,14 +187,20 @@ create_link(struct options *options,
 
      link_target = append_path(destination, filename);
 
+     rpath = relative_path(link_target, source);
+
+     if (!PRETENDING(options) && chdir(destination) == -1)
+     	  err(EXIT_FAILURE, "%s", destination);
+
      if (BEING_VERBOSE(options))
           (void)printf("ln -s %s %s\n", source, link_target);
 
      detect_conflict(options, link_target);
 
-     if (!PRETENDING(options) && symlink(source, link_target) == -1)
-          err(EXIT_FAILURE, "couldn't link %s to %s", source, link_target);
+     if (!PRETENDING(options) && symlink(rpath, filename) == -1)
+          err(EXIT_FAILURE, "couldn't link %s to %s", rpath, filename);
 
+     free(rpath);
      free(link_target);
 }
 
@@ -285,6 +234,7 @@ delete_link(struct options *options, char *destination, char *filename)
                 */
                
                char link_target[_POSIX_PATH_MAX];
+	       char *abs;
                char *p;
                ssize_t len;
 
@@ -293,13 +243,19 @@ delete_link(struct options *options, char *destination, char *filename)
                if (len == -1)
                     err(EXIT_FAILURE, "couldn't read link %s", full_dest);
 
+	       if (chdir(destination) == -1)
+		    err(EXIT_FAILURE, NULL);
+
                link_target[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
+	       abs = absolute_path(link_target);
 
-               p = strstr(link_target, options->source_dir);
+               p = strstr(abs, options->source_dir);
 
-               if (p == NULL || p != link_target)
-                    err(EXIT_FAILURE, "%s no a valid symlink (points to %s)",
+               if (p == NULL || p != abs)
+                    err(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
                         full_dest, link_target);
+
+	       free(abs);
           } else {
                /*
                 * Ignore regular files or directories with the same
@@ -406,50 +362,6 @@ usage(int status)
      (void)fprintf(stream, "Usage: cstow [-cdDhnRtv] <package-name>\n");
 
      exit(status);
-}
-
-static char *
-directory_name(char *path)
-{
-     char *copy;
-     char *name;
-
-     assert(path != NULL);
-
-     copy = xstrdup(path);
-     name = xstrdup(dirname(copy));
-     free(copy);
-
-     return name;
-}
-
-static char *
-absolute_path(char *path)
-{
-     char *abs;
-
-     assert(path != NULL);
-
-     abs = realpath(path, NULL);
-
-     if (abs == NULL)
-	  err(EXIT_FAILURE, "%s", path);
-
-     return abs;
-}
-
-static void
-make_absolute_path(char **path)
-{
-     char *abs;
-
-     assert(path != NULL);
-     assert(*path != NULL);
-
-     abs = absolute_path(*path);
-
-     free(*path);
-     *path = abs;
 }
 
 static void
