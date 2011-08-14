@@ -359,7 +359,21 @@ usage(int status)
 {
      FILE *stream = status ? stderr : stdout;
 
-     (void)fprintf(stream, "Usage: cstow [-cdDhnRtv] <package-name>\n");
+     (void)fprintf(stream,
+                   "Usage: cstow [-cdDhnRtv] <package-name>\n"
+                   "  -c,     Do not exit when a conflict is found, continue as if\n"
+                   "          nothing happened.  This options implies -n.\n"
+                   "  -d DIR, Set the package directory to DIR.  If not\n"
+                   "          specified the current directory will be used.\n"
+                   "  -D,     Delete the package instead of installing it.\n"
+                   "  -h,     Show this help message.\n"
+                   "  -n,     Do not perform any of the operations, only pretend.\n"
+                   "          Useful for detecting errors without damaging anything.\n"
+                   "  -R,     Reinstall a package.  Equivalent to invoking cstow\n"
+                   "          to install and deinstall in sequence.\n"
+                   "  -t DIR, Set the target directory to DIR.  If not\n"
+                   "          specified the parent directory will be used.\n"
+                   "  -v,     Be verbose, showing each operation performed.\n");
 
      exit(status);
 }
