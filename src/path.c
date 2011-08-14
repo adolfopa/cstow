@@ -51,8 +51,8 @@ relative_path(char *from, char *to)
 int
 make_relative_path(char *from, char *to, char *buffer, size_t n)
 {
-     char *from_ctx;
-     char *to_ctx;
+     char *from_ctx = NULL;
+     char *to_ctx = NULL;
      char *p;
      char *q;
      int depth;
