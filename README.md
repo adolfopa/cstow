@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/adolfopa/cstow.svg?branch=master)](https://travis-ci.org/adolfopa/cstow)
+
 CStow is a software package management tool.  Essentially, it is a
 simplified clone of GNU Stow.  The main differences between GNU Stow
 and CStow are:
