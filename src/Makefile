@@ -1,13 +1,15 @@
 CFLAGS = -Wall -Wextra -Wno-unused -O2
 LDFLAGS = -latf-c
 
+TUSH_HOME=$$(pwd)/../tush
+
 all: cstow
 
 cstow: cstow.o util.o path.o
 	$(CC) $(CFLAGS) -o cstow cstow.o util.o path.o
 
-test:
-	atf-run | atf-report
+test: cstow
+	@PATH=$$PATH:$(TUSH_HOME)/bin:$$(pwd) tush-check TESTS.md
 
 clean:
 	rm -f cstow *.o *~
