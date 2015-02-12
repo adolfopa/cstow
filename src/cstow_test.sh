@@ -9,15 +9,6 @@ D_flag_with_no_arg_fails_body() {
     atf_check -s not-exit:0 -o empty -e not-empty cstow
 }
 
-atf_test_case h_flag_succeeds
-h_flag_succeeds_head() {
-    atf_set "descr" "The -h flag always succeeds."
-    atf_set "require.progs" "cstow"
-}
-h_flag_succeeds_body() {
-    atf_check -s exit:0 -o not-empty -e empty cstow -h
-}
-
 atf_test_case without_flags_stows_package
 without_flags_stows_package_head() {
     atf_set "descr" "Without flags, stows the given package."
