@@ -51,3 +51,28 @@ $ cstow -h
 |           specified the parent directory will be used.
 |   -v,     Be verbose, showing each operation performed.
 ```
+
+## Stowing packages
+
+The first non flag argument to `cstow` will be interpreted as a
+package name. By default, `cstow` will look for the package in the
+current directory, and will install it in the parent directory.
+
+```sh
+$ mkdir -p tmp/package && cd tmp && cstow package
+```
+
+If more flexibility is needed, the `-d` flag allows you to choose
+where packages will be looked up:
+
+```sh
+$ mkdir -p tmp/package && cstow -d tmp package
+```
+
+If no package exists with the given name, cstow will fail.
+
+```sh
+$ cstow package
+@ cstow: Couldn't read dir '$(pwd)/package': No such file or directory
+? 1
+```

@@ -9,7 +9,7 @@ cstow: cstow.o util.o path.o
 	$(CC) $(CFLAGS) -o cstow cstow.o util.o path.o
 
 test: cstow
-	@PATH=$$PATH:$(TUSH_HOME)/bin:$$(pwd) tush-check TESTS.md
+	@PATH=$$PATH:$(TUSH_HOME)/bin:$$(pwd) tush-check -x TESTS.md
 
 clean:
 	rm -f cstow *.o *~
