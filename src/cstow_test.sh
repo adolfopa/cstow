@@ -1,14 +1,5 @@
 #! /usr/bin/env atf-sh
 
-atf_test_case with_no_args_fails
-with_no_args_fails_head() {
-    atf_set "descr" "With no args, CStow should fail."
-    atf_set "require.progs" "cstow"
-}
-with_no_args_fails_body() {
-    atf_check -s not-exit:0 -o empty -e not-empty cstow
-}
-
 atf_test_case D_flag_with_no_arg_fails
 D_flag_with_no_arg_fails_head() {
     atf_set "descr" "The -D flag requires an argument."
