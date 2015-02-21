@@ -2,4 +2,9 @@ language: c
 compiler:
   - gcc
   - clang
+git:
+    submodules: false
+before_install:
+    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+    - git submodule update --init --recursive
 script: make test
