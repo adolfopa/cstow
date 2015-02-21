@@ -6,21 +6,21 @@ simplified clone of GNU Stow.  The main differences between GNU Stow
 and CStow are:
 
   1. CStow is implemented in C with almost no external dependencies.
-  It should compile in any POSIX system out of the box (if it doesn't,
-  it is a bug!).
+  It should compile in any POSIX system out of the box.
 
   2. CStow will never create symbolic links for directories when
   installing packages; only files will be symlinked.  This behaviour
   is intentional.
 
-  3. The -V flag isn't recognized.
+  3. CStow is *way* simpler than GNU Stow. It cannot deferr, override,
+  adopt or ignore files, and it doesn't support ignore files. 
 
 The lack of dependencies makes CStow useful when you want to use GNU
-Stow but aren't allowed to (or don't want to) install Perl on the
-system.  Also, as CStow doesn't symlink directories, it works well in
-conjunction with other tools like FreeBSD ports o NetBSD pkgsrc; this
-way, you can have all your local software in /usr/local instead of
-having multiple local trees.
+Stow but aren't allowed to (or don't want to) install Perl and all its
+transitive dependencies on the system.  Also, as CStow doesn't symlink
+directories, it works well in conjunction with other tools like
+FreeBSD ports o NetBSD pkgsrc; this way, you can have all your local
+software in `/usr/local` instead of having multiple local trees.
 
 If you don't mind having Perl around, or don't use other package
 management tools that might have problems with symlinked directories,
@@ -31,38 +31,42 @@ Installation
 
 To compile and install cstow in your system:
 
-  1. Edit the `Makefile' file and change the INSTALL_DIR variable to
+  1. Edit the `Makefile` file and change the `INSTALL_DIR` variable to
   suit your system.
 
-  2. Execute the `make install' command (you may need root privileges
-  depending on the value of INSTALL_DIR).  This will compile the
+  2. Execute the `make install` command (you may need root privileges
+  depending on the value of `INSTALL_DIR`).  This will compile the
   sources and copy the executable to the place you defined in the
   previous step.
 
-  3. (OPTIONAL) If you have ATF (http://www.netbsd.org/~jmmv/atf/)
-  installed on your system, you can execute the tests with the command
-  `make test'.
+If you want to run the tests:
+
+```sh
+$ git submodule init
+$ git submodule update
+$ make test
+```
 
 And that's it! This should work in any reasonably POSIX system (I've
 tested it with FreeBSD 8.2 and Ubuntu 11.4).  If that's not the case,
-please open an issue with the details at the github project page
-(https://github.com/adolfopa/cstow) or send an email to
-adolfo.pa(at)gmail(dot)com.  I promise I'll try to fix it!.
+please open an issue with the details.
 
 Usage
 -----
 
-Right now, the only documentation available is this crappy text file
-and the output of the `-h' flag :-(.  For more details on the use of
-CStow you can use the (excellent) documentation for the GNU Stow
-package available at http://www.gnu.org/software/stow/.
+For the moment, the only documentation available is the output of the
+`-h` flag and the `src/TESTS.md` file.
+
+As CStow supports a subset of GNU Stow functionality, you can read the
+documentation for the GNU Stow package available at
+http://www.gnu.org/software/stow/ to get more details.
 
 Known bugs
 ----------
 
-CStow will fail to deinstall a package that contains a symbolic link
+CStow will fail to unstow a package that contains a symbolic link
 pointing outside the package directory.  This happens because cstow
-uses the `realpath()' function to resolve filenames; as this function
+uses the `realpath()` function to resolve filenames; as this function
 returns the target filename for symbolic links, cstow thinks that it
 is trying to delete a file that is not owned by the package and
 refuses to remove it.
