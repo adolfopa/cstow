@@ -6,7 +6,7 @@ output should be produced.
 
 ## Executing CSTOW with no arguments
 
-CStow expects at least a non-flat argument, the package to
+CStow expects at least a non-flag argument, the package to
 install. Executing `cstow` with no arguments will fail with a non-zero
 exit status and will show a brief usage message.
 
@@ -31,7 +31,7 @@ $ cstow
 
 ## Getting help
 
-When passsed the `-h` flat, `cstow` will show a usage message and exit
+When given the `-h` flag, `cstow` will show a usage message and exit
 with a success status (0).
 
 ```sh
