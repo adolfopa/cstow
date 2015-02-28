@@ -84,6 +84,33 @@ $ [ -d d0 ]
 $ rm -rf d0
 ```
 
+In case more than a `-d` flag is supplied, the last one is used:
+
+```sh
+$ cstow -d foo -d tmp pkg
+$ [ -d d0 ]
+$ rm -rf d0
+```
+
+You can also change the place where packages will be installed with
+the `-t` flag:
+
+```sh
+$ mkdir target
+$ cstow -d tmp -t target pkg
+$ [ -d target/d0 ]
+$ rm -rf target
+```
+
+As with the `-d` flag, if more than one is provided, the last one is used:
+
+```sh
+$ mkdir target
+$ cstow -d tmp -t foo -t target pkg
+$ [ -d target/d0 ]
+$ rm -rf foo
+```
+
 If no package exists with the given name, cstow will fail.
 
 ```sh
