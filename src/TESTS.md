@@ -164,6 +164,29 @@ $ [ -L d0/A ]
 $ rm -rf d0 && rm tmp/pkg/d0/A
 ```
 
+## Simulating actions
+
+The `-n` flag executes CStow without actually installing (or
+uninstalling) anything.
+
+```sh
+$ cstow -d tmp -n pkg
+$ [ ! -d d0 ]
+```
+
+Note that when using the `-n` flag, CStow *will* detect any
+conflicts. Thus, this option is useful to check for conflicts without
+modifying the installed package.
+
+```sh
+$ cstow -d tmp pkg
+$ cstow -d tmp -n pkg
+@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../tmp/pkg/d0/f0
+@ 
+? 1
+$ rm -rf d0
+```
+
 ## Verbose mode
 
 By default, `cstow` will show no output on success. By using the `-v`
