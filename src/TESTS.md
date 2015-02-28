@@ -7,9 +7,9 @@ output should be produced.
 In the tests, I assume a sample `pkg` package exists:
 
 ```sh
-$ mkdir -p tmp/pkg/d0/d1
-$ touch tmp/pkg/d0/f0
-$ touch tmp/pkg/d0/d1/f1
+$ mkdir -p packages/pkg/d0/d1
+$ touch packages/pkg/d0/f0
+$ touch packages/pkg/d0/d1/f1
 ```
 
 ## Executing CSTOW with no arguments
@@ -67,7 +67,7 @@ package name. By default, `cstow` will look for the package in the
 current directory, and will install it in the parent directory.
 
 ```sh
-$ cd tmp && cstow pkg
+$ cd packages && cstow pkg
 $ [ -d d0 ]
 $ [ -d d0/d1 ]
 $ [ -L d0/f0 ]
@@ -87,7 +87,7 @@ If more flexibility is needed, the `-d` flag allows you to choose
 where packages will be looked up:
 
 ```sh
-$ cstow -d tmp pkg
+$ cstow -d packages pkg
 $ [ -d d0 ]
 $ rm -rf d0
 ```
@@ -95,7 +95,7 @@ $ rm -rf d0
 In case more than a `-d` flag is supplied, the last one is used:
 
 ```sh
-$ cstow -d foo -d tmp pkg
+$ cstow -d foo -d packages pkg
 $ [ -d d0 ]
 $ rm -rf d0
 ```
@@ -105,7 +105,7 @@ the `-t` flag:
 
 ```sh
 $ mkdir target
-$ cstow -d tmp -t target pkg
+$ cstow -d packages -t target pkg
 $ [ -d target/d0 ]
 $ rm -rf target
 ```
@@ -114,7 +114,7 @@ As with the `-d` flag, if more than one is provided, the last one is used:
 
 ```sh
 $ mkdir target
-$ cstow -d tmp -t foo -t target pkg
+$ cstow -d packages -t foo -t target pkg
 $ [ -d target/d0 ]
 $ rm -rf foo
 ```
@@ -124,9 +124,9 @@ $ rm -rf foo
 To unstow (uninstall) a package, use the `-D` flag:
 
 ```sh
-$ cstow -d tmp pkg
+$ cstow -d packages pkg
 $ [ -d d0 ]
-$ cstow -d tmp -D pkg
+$ cstow -d packages -D pkg
 $ [ ! -d d0 ]
 ```
 
@@ -157,11 +157,11 @@ The `-R` flag will reinstall the package. This is equivalent to
 executing `cstow pkg && cstow -D pkg`:
 
 ```sh
-$ cstow -d tmp pkg
-$ touch tmp/pkg/d0/A
-$ cstow -d tmp -R pkg
+$ cstow -d packages pkg
+$ touch packages/pkg/d0/A
+$ cstow -d packages -R pkg
 $ [ -L d0/A ]
-$ rm -rf d0 && rm tmp/pkg/d0/A
+$ rm -rf d0 && rm packages/pkg/d0/A
 ```
 
 ## Simulating actions
@@ -170,7 +170,7 @@ The `-n` flag executes CStow without actually installing (or
 uninstalling) anything.
 
 ```sh
-$ cstow -d tmp -n pkg
+$ cstow -d packages -n pkg
 $ [ ! -d d0 ]
 ```
 
@@ -179,9 +179,9 @@ conflicts. Thus, this option is useful to check for conflicts without
 modifying the installed package.
 
 ```sh
-$ cstow -d tmp pkg
-$ cstow -d tmp -n pkg
-@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../tmp/pkg/d0/f0
+$ cstow -d packages pkg
+$ cstow -d packages -n pkg
+@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../packages/pkg/d0/f0
 @ 
 ? 1
 $ rm -rf d0
@@ -193,17 +193,17 @@ By default, `cstow` will show no output on success. By using the `-v`
 flag, `cstow` will show a detailed log with all executed actions:
 
 ```sh
-$ cstow -d tmp -v pkg
+$ cstow -d packages -v pkg
 | mkdir $(pwd)/d0
-| ln -s $(pwd)/tmp/pkg/d0/f0 $(pwd)/d0/f0
+| ln -s $(pwd)/packages/pkg/d0/f0 $(pwd)/d0/f0
 | mkdir $(pwd)/d0/d1
-| ln -s $(pwd)/tmp/pkg/d0/d1/f1 $(pwd)/d0/d1/f1
+| ln -s $(pwd)/packages/pkg/d0/d1/f1 $(pwd)/d0/d1/f1
 ```
 
 It works both when stowing and unstowing:
 
 ```sh
-$ cstow -d tmp -v -D pkg
+$ cstow -d packages -v -D pkg
 | rm $(pwd)/d0/f0
 | rm $(pwd)/d0/d1/f1
 | rmdir $(pwd)/d0/d1
