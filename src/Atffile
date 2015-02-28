@@ -1,8 +1,0 @@
-Content-Type: application/X-atf-atffile; version="1"
-
-prop: test-suite = cstow
-
-tp: cstow_test.sh
-tp: relative_path_test
-
-
