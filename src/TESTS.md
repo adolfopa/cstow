@@ -4,6 +4,14 @@ This file contains all tests for _cstow_. To run it, execute `make
 test` in this or the parent directory. If everything goes well, no
 output should be produced.
 
+In the tests, I assume a sample `pkg` package exists:
+
+```sh
+$ mkdir -p tmp/pkg/d0/d1
+$ touch tmp/pkg/d0/f0
+$ touch tmp/pkg/d0/d1/f1
+```
+
 ## Executing CSTOW with no arguments
 
 CStow expects at least a non-flag argument, the package to
@@ -59,8 +67,12 @@ package name. By default, `cstow` will look for the package in the
 current directory, and will install it in the parent directory.
 
 ```sh
-$ mkdir -p tmp/pkg
 $ cd tmp && cstow pkg
+$ [ -d d0 ]
+$ [ -d d0/d1 ]
+$ [ -L d0/f0 ]
+$ [ -L d0/d1/f1 ]
+$ rm -rf d0
 ```
 
 If more flexibility is needed, the `-d` flag allows you to choose
@@ -68,6 +80,8 @@ where packages will be looked up:
 
 ```sh
 $ cstow -d tmp pkg
+$ [ -d d0 ]
+$ rm -rf d0
 ```
 
 If no package exists with the given name, cstow will fail.
@@ -83,7 +97,10 @@ $ cstow xyz
 To unstow (uninstall) a package, use the `-D` flag:
 
 ```sh
-$ cd tmp && cstow pkg && cstow -D pkg
+$ cstow -d tmp pkg
+$ [ -d d0 ]
+$ cstow -d tmp -D pkg
+$ [ ! -d d0 ]
 ```
 
 The `-D` requires an argument, the package name:
@@ -113,18 +130,19 @@ By default, `cstow` will show no output on success. By using the `-v`
 flag, `cstow` will show a detailed log with all executed actions:
 
 ```sh
-$ mkdir -p tmp/pkg/x/y && touch tmp/pkg/x/y/foo
-$ cd tmp && cstow -v pkg
-| mkdir $(pwd)/x
-| mkdir $(pwd)/x/y
-| ln -s $(pwd)/tmp/pkg/x/y/foo $(pwd)/x/y/foo
+$ cstow -d tmp -v pkg
+| mkdir $(pwd)/d0
+| ln -s $(pwd)/tmp/pkg/d0/f0 $(pwd)/d0/f0
+| mkdir $(pwd)/d0/d1
+| ln -s $(pwd)/tmp/pkg/d0/d1/f1 $(pwd)/d0/d1/f1
 ```
 
 It works both when stowing and unstowing:
 
 ```sh
-$ cd tmp && cstow -v -D pkg
-| rm $(pwd)/x/y/foo
-| rmdir $(pwd)/x/y
-| rmdir $(pwd)/x
+$ cstow -d tmp -v -D pkg
+| rm $(pwd)/d0/f0
+| rm $(pwd)/d0/d1/f1
+| rmdir $(pwd)/d0/d1
+| rmdir $(pwd)/d0
 ```
