@@ -151,6 +151,19 @@ $ cstow -D
 ? 1
 ```
 
+## Restowing packages
+
+The `-R` flag will reinstall the package. This is equivalent to
+executing `cstow pkg && cstow -D pkg`:
+
+```sh
+$ cstow -d tmp pkg
+$ touch tmp/pkg/d0/A
+$ cstow -d tmp -R pkg
+$ [ -L d0/A ]
+$ rm -rf d0 && rm tmp/pkg/d0/A
+```
+
 ## Verbose mode
 
 By default, `cstow` will show no output on success. By using the `-v`
