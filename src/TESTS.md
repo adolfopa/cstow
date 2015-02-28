@@ -75,6 +75,14 @@ $ [ -L d0/d1/f1 ]
 $ rm -rf d0
 ```
 
+If no package exists with the given name, cstow will fail.
+
+```sh
+$ cstow xyz
+@ cstow: Couldn't read dir '$(pwd)/xyz': No such file or directory
+? 1
+```
+
 If more flexibility is needed, the `-d` flag allows you to choose
 where packages will be looked up:
 
@@ -109,14 +117,6 @@ $ mkdir target
 $ cstow -d tmp -t foo -t target pkg
 $ [ -d target/d0 ]
 $ rm -rf foo
-```
-
-If no package exists with the given name, cstow will fail.
-
-```sh
-$ cstow xyz
-@ cstow: Couldn't read dir '$(pwd)/xyz': No such file or directory
-? 1
 ```
 
 ## Unstowing packages
