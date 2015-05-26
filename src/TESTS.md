@@ -116,7 +116,7 @@ As with the `-d` flag, if more than one is provided, the last one is used:
 $ mkdir target
 $ cstow -d packages -t foo -t target pkg
 $ [ -d target/d0 ]
-$ rm -rf foo
+$ rm -rf target
 ```
 
 ## Unstowing packages
