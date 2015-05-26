@@ -154,7 +154,7 @@ $ cstow -D
 ## Restowing packages
 
 The `-R` flag will reinstall the package. This is equivalent to
-executing `cstow pkg && cstow -D pkg`:
+executing `cstow -D pkg && cstow pkg`:
 
 ```sh
 $ cstow -d packages pkg
