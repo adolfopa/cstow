@@ -92,6 +92,7 @@ process_directory(struct options *options, char *source, char *destination)
 {
      int status;
      size_t len;
+     long name_max;
      struct dirent *entry;
      struct dirent *result;
      DIR *dir;
@@ -113,7 +114,12 @@ process_directory(struct options *options, char *source, char *destination)
       * portable  applications  that use readdir_r() should allocate the buffer
       * whose address is passed in entry as follows:
       */
-     len = offsetof(struct dirent, d_name) + pathconf(source, _PC_NAME_MAX) + 1;
+     name_max = pathconf(source, _PC_NAME_MAX);
+
+     if (name_max == -1)
+          err(EXIT_FAILURE, "couldn't read max file name size system limit");
+
+     len = offsetof(struct dirent, d_name) + (unsigned long)name_max + 1;
      entry = xmalloc(len);
 
      while ((status = readdir_r(dir, entry, &result)) == 0 && result != NULL) {
