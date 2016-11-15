@@ -72,7 +72,7 @@ struct options {
 #define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
 #define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
 
-static void create_dir(struct options *, char *, int);
+static void create_dir(struct options *, char *, mode_t);
 static void create_link(struct options *, char *, char *, char *);
 static void delete_dir(struct options *, char *);
 static void delete_link(struct options *, char *, char *);
@@ -274,7 +274,7 @@ cleanup:
 }
 
 static void
-create_dir(struct options *options, char *dirname, int mode)
+create_dir(struct options *options, char *dirname, mode_t mode)
 {
 
      assert(options != NULL);
