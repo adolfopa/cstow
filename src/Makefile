@@ -1,4 +1,6 @@
-CFLAGS = -Wall -Wextra -Wno-unused -O2
+CFLAGS = -Wall -Wextra -Werror -O2 --std=c11
+#CFLAGS = -Weverything -Werror -O2 --std=c11
+
 LDFLAGS = -latf-c
 
 TUSH_HOME=$$(pwd)/../tush
