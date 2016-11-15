@@ -34,8 +34,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define _GNU_SOURCE
-
 #include <sys/stat.h>
 
 #include <assert.h>
