@@ -34,8 +34,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define _GNU_SOURCE
-
 #include <sys/stat.h>
 
 #include <assert.h>
@@ -45,9 +43,11 @@
 #include <libgen.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -74,7 +74,7 @@ struct options {
 #define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
 #define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
 
-static void create_dir(struct options *, char *, int);
+static void create_dir(struct options *, char *, mode_t);
 static void create_link(struct options *, char *, char *, char *);
 static void delete_dir(struct options *, char *);
 static void delete_link(struct options *, char *, char *);
@@ -84,7 +84,7 @@ static void options_free(struct options *);
 static void options_init(struct options *, int, char **);
 static void process_directory(struct options *, char *, char *);
 static void process_package(struct options *, char *, char *);
-static void usage(int);
+static _Noreturn void usage(int);
 
 
 static void
@@ -92,6 +92,7 @@ process_directory(struct options *options, char *source, char *destination)
 {
      int status;
      size_t len;
+     long name_max;
      struct dirent *entry;
      struct dirent *result;
      DIR *dir;
@@ -107,13 +108,18 @@ process_directory(struct options *options, char *source, char *destination)
 
      /*
       * From the Linux man page:
-      * 
+      *
       * Since  POSIX.1 does not specify the size of the d_name field, and other
       * non-standard fields may precede that field within the dirent structure,
       * portable  applications  that use readdir_r() should allocate the buffer
       * whose address is passed in entry as follows:
       */
-     len = offsetof(struct dirent, d_name) + pathconf(source, _PC_NAME_MAX) + 1;
+     name_max = pathconf(source, _PC_NAME_MAX);
+
+     if (name_max == -1)
+          err(EXIT_FAILURE, "couldn't read max file name size system limit");
+
+     len = offsetof(struct dirent, d_name) + (unsigned long)name_max + 1;
      entry = xmalloc(len);
 
      while ((status = readdir_r(dir, entry, &result)) == 0 && result != NULL) {
@@ -121,7 +127,7 @@ process_directory(struct options *options, char *source, char *destination)
                char *child_name = append_path(source, entry->d_name);
 
                process_package(options, child_name, destination);
-               
+
                free(child_name);
           }
      }
@@ -179,7 +185,7 @@ create_link(struct options *options,
 {
      char *link_target;
      char *rpath;
-     
+
      assert(options != NULL);
      assert(source != NULL);
      assert(destination != NULL);
@@ -190,7 +196,7 @@ create_link(struct options *options,
      rpath = relative_path(link_target, source);
 
      if (!PRETENDING(options) && chdir(destination) == -1)
-     	  err(EXIT_FAILURE, "%s", destination);
+          err(EXIT_FAILURE, "%s", destination);
 
      if (BEING_VERBOSE(options))
           (void)printf("ln -s %s %s\n", source, link_target);
@@ -214,7 +220,7 @@ delete_link(struct options *options, char *destination, char *filename)
      assert(options != NULL);
      assert(destination != NULL);
      assert(filename != NULL);
-     
+
      full_dest = append_path(destination, filename);
 
      if (BEING_VERBOSE(options))
@@ -232,9 +238,9 @@ delete_link(struct options *options, char *destination, char *filename)
                 * stowed packages.  A non valid link is one that
                 * doesn't point inside the package we are unstowing.
                 */
-               
+
                char link_target[_POSIX_PATH_MAX];
-	       char *abs;
+               char *abs;
                char *p;
                ssize_t len;
 
@@ -243,11 +249,11 @@ delete_link(struct options *options, char *destination, char *filename)
                if (len == -1)
                     err(EXIT_FAILURE, "couldn't read link %s", full_dest);
 
-	       if (chdir(destination) == -1)
-		    err(EXIT_FAILURE, NULL);
+               if (chdir(destination) == -1)
+                    err(EXIT_FAILURE, NULL);
 
                link_target[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
-	       abs = absolute_path(link_target);
+               abs = absolute_path(link_target);
 
                p = strstr(abs, options->source_dir);
 
@@ -255,7 +261,7 @@ delete_link(struct options *options, char *destination, char *filename)
                     err(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
                         full_dest, link_target);
 
-	       free(abs);
+               free(abs);
           } else {
                /*
                 * Ignore regular files or directories with the same
@@ -276,12 +282,12 @@ cleanup:
 }
 
 static void
-create_dir(struct options *options, char *dirname, int mode)
+create_dir(struct options *options, char *dirname, mode_t mode)
 {
 
      assert(options != NULL);
      assert(dirname != NULL);
-     
+
      if (BEING_VERBOSE(options))
           (void)printf("mkdir %s\n", dirname);
 
@@ -349,8 +355,8 @@ process_package(struct options *options, char *source, char *destination)
                create_link(options, source, destination, dirname);
           else if (UNINSTALLING(options))
                delete_link(options, destination, dirname);
-	  else
-	       err(EXIT_FAILURE, "Assertion failed: Neither installing or uninstalling.");
+          else
+               err(EXIT_FAILURE, "Assertion failed: Neither installing or uninstalling.");
      }
 }
 
@@ -387,7 +393,7 @@ options_init(struct options *options, int argc, char **argv)
      assert(options != NULL);
      assert(argc > 0);
      assert(argv != NULL);
-     
+
      options->operation_mode = INSTALL;
      options->verbose = options->pretend = options->conflicts = 0;
 
@@ -401,50 +407,50 @@ options_init(struct options *options, int argc, char **argv)
           case 'c':
                options->conflicts = options->pretend = 1;
                break;
-	  case 'd':
-	       if (options->source_dir != NULL)
-		    free(options->source_dir);
-	       options->source_dir = xstrdup(optarg);
+          case 'd':
+               if (options->source_dir != NULL)
+                    free(options->source_dir);
+               options->source_dir = xstrdup(optarg);
 
-	       /*
-		* If the target dir was set by a previous -d flag,
-		* reset it.
-		*/
-	       if (options->target_dir != NULL && !t_flag) {
-		    free(options->target_dir);
-		    options->target_dir = NULL;
-	       }
+               /*
+                * If the target dir was set by a previous -d flag,
+                * reset it.
+                */
+               if (options->target_dir != NULL && !t_flag) {
+                    free(options->target_dir);
+                    options->target_dir = NULL;
+               }
 
-	       if (options->target_dir == NULL)
-		    options->target_dir = directory_name(options->source_dir);
-	       break;
+               if (options->target_dir == NULL)
+                    options->target_dir = directory_name(options->source_dir);
+               break;
           case 'D':
                options->operation_mode = UNINSTALL;
                break;
           case 'h':
                usage(EXIT_SUCCESS);
-               break;
+               assert(false);
           case 'n':
                options->pretend = 1;
                break;
-	  case 'R':
-	       options->operation_mode = REINSTALL;
-	       break;
-	  case 't':
-	       if (options->target_dir != NULL)
-		    free(options->target_dir);
+          case 'R':
+               options->operation_mode = REINSTALL;
+               break;
+          case 't':
+               if (options->target_dir != NULL)
+                    free(options->target_dir);
 
-	       options->target_dir = xstrdup(optarg);
+               options->target_dir = xstrdup(optarg);
 
-	       t_flag = 1;
-	       break;
+               t_flag = 1;
+               break;
           case 'v':
                options->verbose = 1;
                break;
           case '?':
           default:
                usage(EXIT_FAILURE);
-               break;
+               assert(false);
           }
 
      /* Package name is mandatory. */
@@ -456,10 +462,10 @@ options_init(struct options *options, int argc, char **argv)
       * current directory.
       */
      if (options->source_dir == NULL) {
-	  options->source_dir = xmalloc(sizeof(char) * _POSIX_PATH_MAX);
+          options->source_dir = xmalloc(sizeof(char) * _POSIX_PATH_MAX);
 
-	  if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
-	       err(EXIT_FAILURE, NULL);
+          if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
+               err(EXIT_FAILURE, NULL);
      }
 
      make_absolute_path(&options->source_dir);
@@ -469,7 +475,7 @@ options_init(struct options *options, int argc, char **argv)
       * source directory parent.
       */
      if (options->target_dir == NULL)
-	  options->target_dir = directory_name(options->source_dir);
+          options->target_dir = directory_name(options->source_dir);
 
      make_absolute_path(&options->target_dir);
 
@@ -503,12 +509,12 @@ main(int argc, char **argv)
      options_init(&options, argc, argv);
 
      if (REINSTALLING(&options)) {
-	  options.operation_mode = UNINSTALL;
-	  process_directory(&options, options.package_dir, options.target_dir);
-	  options.operation_mode = INSTALL;
-	  process_directory(&options, options.package_dir, options.target_dir);
+          options.operation_mode = UNINSTALL;
+          process_directory(&options, options.package_dir, options.target_dir);
+          options.operation_mode = INSTALL;
+          process_directory(&options, options.package_dir, options.target_dir);
      } else {
-	  process_directory(&options, options.package_dir, options.target_dir);
+          process_directory(&options, options.package_dir, options.target_dir);
      }
 
      options_free(&options);

@@ -1,5 +1,5 @@
-#ifndef __CSTOW_PATH_H
-#define __CSTOW_PATH_H
+#ifndef CSTOW_PATH_H
+#define CSTOW_PATH_H
 
 extern char *absolute_path(char *);
 extern char *append_path(char *, char *);
