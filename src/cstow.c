@@ -43,6 +43,7 @@
 #include <libgen.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -421,7 +422,7 @@ options_init(struct options *options, int argc, char **argv)
                break;
           case 'h':
                usage(EXIT_SUCCESS);
-               break;
+               assert(false);
           case 'n':
                options->pretend = 1;
                break;
@@ -442,7 +443,7 @@ options_init(struct options *options, int argc, char **argv)
           case '?':
           default:
                usage(EXIT_FAILURE);
-               break;
+               assert(false);
           }
 
      /* Package name is mandatory. */
