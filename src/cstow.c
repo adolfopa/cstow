@@ -46,6 +46,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -82,7 +83,7 @@ static void options_free(struct options *);
 static void options_init(struct options *, int, char **);
 static void process_directory(struct options *, char *, char *);
 static void process_package(struct options *, char *, char *);
-static void usage(int);
+static _Noreturn void usage(int);
 
 
 static void
