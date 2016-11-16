@@ -80,7 +80,7 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
       * share any common parent.
       */
      depth = strcmp(from, to) == 0 ? 0 : 1;
-     
+
      while (strtok_r(NULL, ROOT_PATH, &from_ctx) != NULL)
 	  depth++;
 
@@ -132,7 +132,7 @@ append_path(char *s, char *t)
 
      if (*t != '/' && s[slen - 1] != '/')
           result[slen] = '/';
-     
+
      (void)memcpy(result + slen + 1, t, tlen + 1);
 
      result[slen + tlen + 1] = '\0';
