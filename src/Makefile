@@ -1,5 +1,3 @@
-CFLAGS = -Wall -Wextra -Wno-unused -O2
-
 TUSH_HOME=$$(pwd)/../tush
 
 all: cstow
