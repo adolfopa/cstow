@@ -1,5 +1,4 @@
 CFLAGS = -Wall -Wextra -Wno-unused -O2
-LDFLAGS = -latf-c
 
 TUSH_HOME=$$(pwd)/../tush
 
