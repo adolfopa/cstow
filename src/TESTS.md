@@ -181,7 +181,7 @@ modifying the installed package.
 ```sh
 $ cstow -d packages pkg
 $ cstow -d packages -n pkg
-@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../packages/pkg/d0/f0
+@ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
 @ 
 ? 1
 $ rm -rf d0
@@ -195,17 +195,17 @@ flag, `cstow` will show a detailed log with all executed actions:
 ```sh
 $ cstow -d packages -v pkg
 | mkdir $(pwd)/d0
-| ln -s $(pwd)/packages/pkg/d0/f0 $(pwd)/d0/f0
 | mkdir $(pwd)/d0/d1
 | ln -s $(pwd)/packages/pkg/d0/d1/f1 $(pwd)/d0/d1/f1
+| ln -s $(pwd)/packages/pkg/d0/f0 $(pwd)/d0/f0
 ```
 
 It works both when stowing and unstowing:
 
 ```sh
 $ cstow -d packages -v -D pkg
-| rm $(pwd)/d0/f0
 | rm $(pwd)/d0/d1/f1
 | rmdir $(pwd)/d0/d1
+| rm $(pwd)/d0/f0
 | rmdir $(pwd)/d0
 ```
