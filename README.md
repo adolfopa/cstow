@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/adolfopa/cstow.svg?branch=master)](https://travis-ci.org/adolfopa/cstow)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/adolfopa/cstow/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/adolfopa/cstow.svg)](https://github.com/adolfopa/cstow/releases/latest)
 
 CStow is a software package management tool.  Essentially, it is a
 simplified clone of GNU Stow.  The main differences between GNU Stow
@@ -13,7 +14,7 @@ and CStow are:
   is intentional.
 
   3. CStow is *way* simpler than GNU Stow. It cannot deferr, override,
-  adopt or ignore files, and it doesn't support ignore files. 
+  adopt or ignore files, and it doesn't support ignore files.
 
 The lack of dependencies makes CStow useful when you want to use GNU
 Stow but aren't allowed to (or don't want to) install Perl and all its
@@ -34,7 +35,9 @@ To compile and install cstow in your system:
   1. Edit the `Makefile` file and change the `INSTALL_DIR` variable to
   suit your system.
 
-  2. Execute the `make install` command (you may need root privileges
+  2. Optionally, you can tune the `CFLAGS` variable.
+
+  3. Execute the `make install` command (you may need root privileges
   depending on the value of `INSTALL_DIR`).  This will compile the
   sources and copy the executable to the place you defined in the
   previous step.
@@ -47,9 +50,9 @@ $ git submodule update
 $ make test
 ```
 
-And that's it! This should work in any reasonably POSIX system (I've
-tested it with FreeBSD 8.2 and Ubuntu 11.4).  If that's not the case,
-please open an issue with the details.
+This should work in any modern POSIX-like system (tested with FreeBSD
+11-STABLE, Mac OS X 10.11.6, Debian 8 and Ubuntu 12.04 LTS).  If
+that's not the case, please open an issue with the details.
 
 Usage
 -----
