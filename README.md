@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/adolfopa/cstow.svg?branch=master)](https://travis-ci.org/adolfopa/cstow)
+[![Codecov](https://img.shields.io/codecov/c/github/adolfopa/cstow.svg)](https://codecov.io/gh/adolfopa/cstow/)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/adolfopa/cstow/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/adolfopa/cstow.svg)](https://github.com/adolfopa/cstow/releases/latest)
 
