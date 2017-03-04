@@ -12,6 +12,8 @@ INSTALL_DIR = /usr/local/bin
 
 CFLAGS = -Wall -Wextra -Werror -O2
 
+CFLAGS_CC = -Wall -Wextra -Werror -O0 -coverage
+
 ##
 ## YOU SHOULD NOT NEED TO MODIFY ANYTHING BELOW HERE
 ##
@@ -27,3 +29,7 @@ install: compile
 
 test:
 	cd src && $(MAKE) CFLAGS="$(CFLAGS)" test
+
+test-coverage:
+	cd src && $(MAKE) CFLAGS="$(CFLAGS_CC)" test
+	cd src && gcov *.c
