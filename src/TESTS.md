@@ -187,6 +187,19 @@ $ cstow -d packages -n pkg
 $ rm -rf d0
 ```
 
+While the `-n` flag will detect conflicts, it will stop on the first
+failure. If you want to see all conflicts, you need to use the `-c` flag.
+
+```sh
+$ cstow -d packages pkg
+$ cstow -d packages -c pkg
+@ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
+@ 
+@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../packages/pkg/d0/f0
+@ 
+$ rm -rf d0
+```
+
 ## Verbose mode
 
 By default, `cstow` will show no output on success. By using the `-v`
