@@ -109,15 +109,15 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
      }
 
      if (n > 0)
-	  buffer[n - 1] = '\0'; /* make sure `buffer' is a valid string no matter what */
+	  buffer[n - 1] = '\0';	/* make sure `buffer' is a valid string no matter what */
 
-     return remaining == 0; /* if remaining == 0, the path didn't fit in the buffer. */
+     return remaining == 0;	/* if remaining == 0, the path didn't fit in the buffer. */
 }
 
 char *
 append_path(char *s, char *t)
 {
-     char * result;
+     char *result;
      size_t slen;
      size_t tlen;
 
@@ -131,7 +131,7 @@ append_path(char *s, char *t)
      (void)memcpy(result, s, slen);
 
      if (*t != '/' && s[slen - 1] != '/')
-          result[slen] = '/';
+	  result[slen] = '/';
 
      (void)memcpy(result + slen + 1, t, tlen + 1);
 

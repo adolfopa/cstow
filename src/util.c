@@ -15,7 +15,7 @@ xmalloc(size_t n)
      p = malloc(n);
 
      if (p == NULL)
-          err(EXIT_FAILURE, NULL);
+	  err(EXIT_FAILURE, NULL);
 
      return p;
 }
@@ -30,7 +30,7 @@ xstrdup(char *s)
      p = strdup(s);
 
      if (p == NULL)
-          err(EXIT_FAILURE, NULL);
+	  err(EXIT_FAILURE, NULL);
 
      return p;
 }
