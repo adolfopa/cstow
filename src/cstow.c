@@ -167,7 +167,8 @@ detect_conflict(struct options *options, char *destination)
 
 	       linked_file[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
 
-	       warnx("CONFLICT: %s vs %s", destination, linked_file);
+	       warnx("CONFLICT: link %s points to %s",
+		     destination, linked_file);
 	  } else {
 	       warnx("CONFLICT: %s", destination);
 	  }

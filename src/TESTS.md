@@ -181,19 +181,22 @@ modifying the installed package.
 ```sh
 $ cstow -d packages pkg
 $ cstow -d packages -n pkg
-@ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
+@ cstow: CONFLICT: link $(pwd)/d0/d1/f1 points to ../../packages/pkg/d0/d1/f1
 ? 1
 $ rm -rf d0
 ```
 
 While the `-n` flag will detect conflicts, it will stop on the first
-failure. If you want to see all conflicts, you need to use the `-c` flag.
+failure. If you want to see all conflicts, you need to use the `-c`
+flag. In this example, `cstow` detects that there are already two links
+`f0` and `f1`, and will tell you where do they point:
+
 
 ```sh
 $ cstow -d packages pkg
 $ cstow -d packages -c pkg
-@ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
-@ cstow: CONFLICT: $(pwd)/d0/f0 vs ../packages/pkg/d0/f0
+@ cstow: CONFLICT: link $(pwd)/d0/d1/f1 points to ../../packages/pkg/d0/d1/f1
+@ cstow: CONFLICT: link $(pwd)/d0/f0 points to ../packages/pkg/d0/f0
 $ rm -rf d0
 ```
 
