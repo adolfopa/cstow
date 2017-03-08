@@ -19,7 +19,7 @@ skip_leading(char *s, char c)
      assert(s != NULL);
 
      while (*s == c)
-	  s++;
+          s++;
 
      return s;
 }
@@ -70,8 +70,8 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
 
      /* Skip the longest common prefix of `from' and `to' */
      while (p != NULL && q != NULL && strcmp(p, q) == 0) {
-	  p = strtok_r(NULL, ROOT_PATH, &from_ctx);
-	  q = strtok_r(NULL, ROOT_PATH, &to_ctx);
+          p = strtok_r(NULL, ROOT_PATH, &from_ctx);
+          q = strtok_r(NULL, ROOT_PATH, &to_ctx);
      }
 
      /*
@@ -82,7 +82,7 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
      depth = strcmp(from, to) == 0 ? 0 : 1;
 
      while (strtok_r(NULL, ROOT_PATH, &from_ctx) != NULL)
-	  depth++;
+          depth++;
 
      remaining = n;
 
@@ -90,28 +90,28 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
 
      /* Add as many '../' as needed to go from `from' to the root of `to' */
      while (depth > 0 && remaining > 0) {
-	  memcpy(buffer + (n - remaining), PARENT_PATH, min(remaining, 3));
-	  remaining = remaining >= 3 ? remaining - 3 : 0;
-	  depth--;
+          memcpy(buffer + (n - remaining), PARENT_PATH, min(remaining, 3));
+          remaining = remaining >= 3 ? remaining - 3 : 0;
+          depth--;
      }
 
      /* Copy all remaining `to' elements onto the relative path created */
      while (q != NULL && remaining > 0) {
-	  size_t qlen = strlen(q);
-	  memcpy(buffer + (n - remaining), q, min(remaining, qlen));
-	  remaining -= qlen;
+          size_t qlen = strlen(q);
+          memcpy(buffer + (n - remaining), q, min(remaining, qlen));
+          remaining -= qlen;
 
-	  q = strtok_r(NULL, ROOT_PATH, &to_ctx);
+          q = strtok_r(NULL, ROOT_PATH, &to_ctx);
 
-	  /* if there are more items, add a FILE_SEPARATOR between this and the next one. */
-	  if (q != NULL)
-	       buffer[n - remaining--] = FILE_SEPARATOR;
+          /* if there are more items, add a FILE_SEPARATOR between this and the next one. */
+          if (q != NULL)
+               buffer[n - remaining--] = FILE_SEPARATOR;
      }
 
      if (n > 0)
-	  buffer[n - 1] = '\0';	/* make sure `buffer' is a valid string no matter what */
+          buffer[n - 1] = '\0'; /* make sure `buffer' is a valid string no matter what */
 
-     return remaining == 0;	/* if remaining == 0, the path didn't fit in the buffer. */
+     return remaining == 0;     /* if remaining == 0, the path didn't fit in the buffer. */
 }
 
 char *
@@ -131,7 +131,7 @@ append_path(char *s, char *t)
      (void)memcpy(result, s, slen);
 
      if (*t != '/' && s[slen - 1] != '/')
-	  result[slen] = '/';
+          result[slen] = '/';
 
      (void)memcpy(result + slen + 1, t, tlen + 1);
 
@@ -165,7 +165,7 @@ absolute_path(char *path)
      abs = realpath(path, NULL);
 
      if (abs == NULL)
-	  err(EXIT_FAILURE, "%s", path);
+          err(EXIT_FAILURE, "%s", path);
 
      return abs;
 }
