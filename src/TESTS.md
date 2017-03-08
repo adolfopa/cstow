@@ -182,7 +182,6 @@ modifying the installed package.
 $ cstow -d packages pkg
 $ cstow -d packages -n pkg
 @ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
-@ 
 ? 1
 $ rm -rf d0
 ```
@@ -194,9 +193,7 @@ failure. If you want to see all conflicts, you need to use the `-c` flag.
 $ cstow -d packages pkg
 $ cstow -d packages -c pkg
 @ cstow: CONFLICT: $(pwd)/d0/d1/f1 vs ../../packages/pkg/d0/d1/f1
-@ 
 @ cstow: CONFLICT: $(pwd)/d0/f0 vs ../packages/pkg/d0/f0
-@ 
 $ rm -rf d0
 ```
 
