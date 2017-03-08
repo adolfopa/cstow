@@ -256,9 +256,10 @@ delete_link(struct options *options, char *destination, char *filename)
 
 	       p = strstr(abs, options->source_dir);
 
-	       if (p == NULL || p != abs)
-		    err(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
-			full_dest, link_target);
+	       if (p == NULL || p != abs) {
+		    errx(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
+			 full_dest, link_target);
+	       }
 
 	       free(abs);
 	  } else {

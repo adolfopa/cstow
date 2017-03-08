@@ -37,6 +37,28 @@ $ cstow
 ? 1
 ```
 
+The same will happen when giving it an unrecognized option:
+
+```sh
+$ cstow -z
+@ cstow: illegal option -- z
+@ Usage: cstow [-cdDhnRtv] <package-name>
+@   -c,     Do not exit when a conflict is found, continue as if
+@           nothing happened.  This options implies -n.
+@   -d DIR, Set the package directory to DIR.  If not
+@           specified the current directory will be used.
+@   -D,     Delete the package instead of installing it.
+@   -h,     Show this help message.
+@   -n,     Do not perform any of the operations, only pretend.
+@           Useful for detecting errors without damaging anything.
+@   -R,     Reinstall a package.  Equivalent to invoking cstow
+@           to install and deinstall in sequence.
+@   -t DIR, Set the target directory to DIR.  If not
+@           specified the parent directory will be used.
+@   -v,     Be verbose, showing each operation performed.
+? 1
+```
+
 ## Getting help
 
 When given the `-h` flag, `cstow` will show a usage message and exit
@@ -68,6 +90,17 @@ current directory, and will install it in the parent directory.
 
 ```sh
 $ cd packages && cstow pkg
+$ [ -d d0 ]
+$ [ -d d0/d1 ]
+$ [ -L d0/f0 ]
+$ [ -L d0/d1/f1 ]
+$ rm -rf d0
+```
+
+`cstow` will ignore any trailing slashes in the package name:
+
+```sh
+$ cd packages && cstow pkg///
 $ [ -d d0 ]
 $ [ -d d0/d1 ]
 $ [ -L d0/f0 ]
@@ -128,6 +161,30 @@ $ cstow -d packages pkg
 $ [ -d d0 ]
 $ cstow -d packages -D pkg
 $ [ ! -d d0 ]
+```
+
+If a regular file was found where a link into the package was
+expected, `cstow` will show a warning and ignore the file (you'll have
+to clean it up manually).
+
+```sh
+$ cstow -d packages pkg
+$ rm d0/f0 && touch d0/f0
+$ cstow -d packages -D pkg
+@ cstow: $(pwd)/d0/f0 not a valid symlink
+$ rm -rf d0
+```
+
+Also, if a link is found, but it doesn't point into the package,
+`cstow` will also ignore it:
+
+```sh
+$ cstow -d packages pkg
+$ touch dummy && rm d0/f0 && ln -s $(pwd)/dummy d0/f0
+$ cstow -d packages -D pkg
+@ cstow: $(pwd)/d0/f0 not a valid symlink (points to $(pwd)/dummy)
+? 1
+$ rm -rf d0 dummy
 ```
 
 The `-D` requires an argument, the package name:
