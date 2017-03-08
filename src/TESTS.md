@@ -200,6 +200,17 @@ $ cstow -d packages -c pkg
 $ rm -rf d0
 ```
 
+Here another example, where a regular file already exists in the
+target directory:
+
+```sh
+$ mkdir d0 && touch d0/f0
+$ cstow -d packages pkg
+@ cstow: CONFLICT: regular file $(pwd)/d0/f0 already exists
+? 1
+$ rm -rf d0
+```
+
 ## Verbose mode
 
 By default, `cstow` will show no output on success. By using the `-v`

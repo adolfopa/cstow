@@ -170,7 +170,7 @@ detect_conflict(struct options *options, char *destination)
 	       warnx("CONFLICT: link %s points to %s",
 		     destination, linked_file);
 	  } else {
-	       warnx("CONFLICT: %s", destination);
+	       warnx("CONFLICT: regular file %s already exists", destination);
 	  }
 
 	  if (!CHECKING_CONFLICTS(options))
