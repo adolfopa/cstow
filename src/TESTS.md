@@ -41,7 +41,7 @@ The same will happen when giving it an unrecognized option:
 
 ```sh
 $ cstow -z
-@ cstow: illegal option -- z
+@ cstow: invalid option -- 'z'
 @ Usage: cstow [-cdDhnRtv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
