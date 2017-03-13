@@ -13,5 +13,5 @@ clean:
 
 install: cstow
 	@test x$(INSTALL_DIR) != x || ( echo "INSTALL_DIR not defined!. You should be calling this target from the toplevel makefile." && false )
-	test ! -d $(INSTALL_DIR) && mkdir $(INSTALL_DIR) || true
+	test ! -d $(INSTALL_DIR) && mkdir -p $(INSTALL_DIR) || true
 	install -Sc cstow $(INSTALL_DIR)/cstow
