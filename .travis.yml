@@ -7,8 +7,8 @@ git:
 before_install:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
     - git submodule update --init --recursive
-    - pip install --user cpp-coveralls
+    - if [ $CC != clang ]; then pip install --user cpp-coveralls; fi
 script:
-    - make test-coverage
+    - if [ $CC = clang ]; then make test; else make test-coverage; fi
 after_success:
-    - coveralls
+    - if [ $CC != clang ]; then coveralls; fi
