@@ -88,11 +88,7 @@ static void usage(int);
 static void
 process_directory(struct options *options, char *source, char *destination)
 {
-     int status;
-     size_t len;
-     long name_max;
      struct dirent *entry;
-     struct dirent *result;
      DIR *dir;
 
      assert(options != NULL);
@@ -104,40 +100,24 @@ process_directory(struct options *options, char *source, char *destination)
      if (!dir)
           err(EXIT_FAILURE, "Couldn't read dir '%s'", source);
 
-     /*
-      * From the Linux man page:
-      *
-      * Since  POSIX.1 does not specify the size of the d_name field, and other
-      * non-standard fields may precede that field within the dirent structure,
-      * portable  applications  that use readdir_r() should allocate the buffer
-      * whose address is passed in entry as follows:
-      */
-     name_max = pathconf(source, _PC_NAME_MAX);
+     errno = 0;
 
-     if (name_max == -1)
-          err(EXIT_FAILURE, "couldn't read max file name size system limit");
-
-     len = offsetof(struct dirent, d_name) + (unsigned long)name_max + 1;
-     entry = xmalloc(len);
-
-     while ((status = readdir_r(dir, entry, &result)) == 0 && result != NULL) {
+     while ((entry = readdir(dir))) {
           if (strcmp(entry->d_name, "..") && strcmp(entry->d_name, ".")) {
                char *child_name = append_path(source, entry->d_name);
 
                process_package(options, child_name, destination);
 
                free(child_name);
+
+	       errno = 0;
           }
      }
 
-     free(entry);
-
-     if (status)
+     if (errno)
           err(EXIT_FAILURE, "couldn't read '%s' contents", source);
 
-     status = closedir(dir);
-
-     if (status == -1)
+     if (closedir(dir) == -1)
           err(EXIT_FAILURE, "couldn't close dir '%s'", source);
 }
 
