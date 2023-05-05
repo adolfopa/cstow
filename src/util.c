@@ -8,29 +8,29 @@
 void *
 xmalloc(size_t n)
 {
-     void *p;
+	void *p;
 
-     assert(n > 0);
+	assert(n > 0);
 
-     p = malloc(n);
+	p = malloc(n);
 
-     if (p == NULL)
-          err(EXIT_FAILURE, NULL);
+	if (p == NULL)
+		err(EXIT_FAILURE, NULL);
 
-     return p;
+	return p;
 }
 
 char *
 xstrdup(char *s)
 {
-     void *p;
+	void *p;
 
-     assert(s != NULL);
+	assert(s != NULL);
 
-     p = strdup(s);
+	p = strdup(s);
 
-     if (p == NULL)
-          err(EXIT_FAILURE, NULL);
+	if (p == NULL)
+		err(EXIT_FAILURE, NULL);
 
-     return p;
+	return p;
 }
