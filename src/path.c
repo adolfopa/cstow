@@ -7,7 +7,6 @@
 #include <limits.h>
 
 #include "path.h"
-#include "util.h"
 
 #define PARENT_PATH "../"
 #define ROOT_PATH "/"
@@ -37,15 +36,17 @@ relative_path(char *from, char *to)
 	assert(from != NULL);
 	assert(to != NULL);
 
-	from_copy = xstrdup(from);
-	to_copy = xstrdup(to);
+	if ((from_copy = strdup(from)) == NULL)
+		err(EXIT_FAILURE, NULL);
+	if ((to_copy = strdup(to)) == NULL)
+		err(EXIT_FAILURE, NULL);
 
 	retval = make_relative_path(from_copy, to_copy, buffer, _POSIX_PATH_MAX);
 
 	free(to_copy);
 	free(from_copy);
 
-	return retval == 0 ? xstrdup(buffer) : NULL;
+	return retval == 0 ? strdup(buffer) : NULL;
 }
 
 int
@@ -126,7 +127,8 @@ append_path(char *s, char *t)
 
 	slen = strlen(s);
 	tlen = strlen(t);
-	result = xmalloc(sizeof(char) * (slen + tlen + 2));
+	if ((result = malloc(sizeof(char) * (slen + tlen + 2))) == NULL)
+		err(EXIT_FAILURE, NULL);
 
 	(void)memcpy(result, s, slen);
 
@@ -148,8 +150,10 @@ directory_name(char *path)
 
 	assert(path != NULL);
 
-	copy = xstrdup(path);
-	name = xstrdup(dirname(copy));
+	if ((copy = strdup(path)) == NULL)
+		err(EXIT_FAILURE, NULL);
+	if ((name = strdup(dirname(copy))) == NULL)
+		err(EXIT_FAILURE, NULL);
 	free(copy);
 
 	return name;

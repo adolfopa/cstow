@@ -2,8 +2,8 @@ TUSH_HOME=$$(pwd)/../tush
 
 all: cstow
 
-cstow: cstow.o util.o path.o
-	$(CC) $(CFLAGS) -o cstow cstow.o util.o path.o
+cstow: cstow.o path.o
+	$(CC) $(CFLAGS) -o cstow cstow.o path.o
 
 test: cstow
 	@PATH=$$PATH:$(TUSH_HOME)/bin:$$(pwd) tush-check -x TESTS.md

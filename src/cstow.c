@@ -50,7 +50,6 @@
 #include <unistd.h>
 
 #include "path.h"
-#include "util.h"
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
 
@@ -391,7 +390,8 @@ options_init(struct options *options, int argc, char **argv)
 		case 'd':
 			if (options->source_dir != NULL)
 				free(options->source_dir);
-			options->source_dir = xstrdup(optarg);
+			if ((options->source_dir = strdup(optarg)) == NULL)
+				err(EXIT_FAILURE, NULL);
 
 			/*
 			 * If the target dir was set by a previous -d flag,
@@ -421,7 +421,8 @@ options_init(struct options *options, int argc, char **argv)
 			if (options->target_dir != NULL)
 				free(options->target_dir);
 
-			options->target_dir = xstrdup(optarg);
+			if ((options->target_dir = strdup(optarg)) == NULL)
+				err(EXIT_FAILURE, NULL);
 
 			t_flag = 1;
 			break;
@@ -443,7 +444,8 @@ options_init(struct options *options, int argc, char **argv)
 	 * current directory.
 	 */
 	if (options->source_dir == NULL) {
-		options->source_dir = xmalloc(sizeof(char) * _POSIX_PATH_MAX);
+		if ((options->source_dir = malloc(sizeof(char) * _POSIX_PATH_MAX)) == NULL)
+			err(EXIT_FAILURE, NULL);
 
 		if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
 			err(EXIT_FAILURE, NULL);
@@ -460,7 +462,8 @@ options_init(struct options *options, int argc, char **argv)
 
 	make_absolute_path(&options->target_dir);
 
-	options->package_name = xstrdup(argv[optind]);
+	if ((options->package_name = strdup(argv[optind])) == NULL)
+		err(EXIT_FAILURE, NULL);
 
 	/* Remove trailing '/' from package name. */
 	len = strlen(options->package_name);
