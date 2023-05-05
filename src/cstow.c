@@ -53,7 +53,7 @@
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
 
-struct options {
+struct {
 	int conflicts;
 	int verbose;
 	int pretend;
@@ -62,35 +62,26 @@ struct options {
 	char *source_dir;
 	char *target_dir;
 	char *package_dir;
-};
+} options;
 
-#define BEING_VERBOSE(o) ((o)->verbose)
-#define CHECKING_CONFLICTS(o) ((o)->conflicts)
-#define PRETENDING(o) ((o)->pretend)
-#define INSTALLING(o) ((o)->operation_mode == INSTALL)
-#define UNINSTALLING(o) ((o)->operation_mode == UNINSTALL)
-#define REINSTALLING(o) ((o)->operation_mode == REINSTALL)
-
-static void create_dir(struct options *, char *, mode_t);
-static void create_link(struct options *, char *, char *, char *);
-static void delete_dir(struct options *, char *);
-static void delete_link(struct options *, char *, char *);
-static void detect_conflict(struct options *, char *);
+static void create_dir(char *, mode_t);
+static void create_link(char *, char *, char *);
+static void delete_dir(char *);
+static void delete_link(char *, char *);
+static void detect_conflict(char *);
 int main(int, char **);
-static void options_free(struct options *);
-static void options_init(struct options *, int, char **);
-static void process_directory(struct options *, char *, char *);
-static void process_package(struct options *, char *, char *);
+static void options_init(int, char **);
+static void process_directory(char *, char *);
+static void process_package(char *, char *);
 static void usage(int);
 
 
 static void
-process_directory(struct options *options, char *source, char *destination)
+process_directory(char *source, char *destination)
 {
 	struct dirent *entry;
 	DIR *dir;
 
-	assert(options != NULL);
 	assert(source != NULL);
 	assert(destination != NULL);
 
@@ -105,7 +96,7 @@ process_directory(struct options *options, char *source, char *destination)
 		if (strcmp(entry->d_name, "..") && strcmp(entry->d_name, ".")) {
 			char *child_name = append_path(source, entry->d_name);
 
-			process_package(options, child_name, destination);
+			process_package(child_name, destination);
 
 			free(child_name);
 
@@ -121,12 +112,11 @@ process_directory(struct options *options, char *source, char *destination)
 }
 
 static void
-detect_conflict(struct options *options, char *destination)
+detect_conflict(char *destination)
 {
 	struct stat buf;
 	int status;
 
-	assert(options != NULL);
 	assert(destination != NULL);
 
 	status = lstat(destination, &buf);
@@ -152,19 +142,17 @@ detect_conflict(struct options *options, char *destination)
 			warnx("CONFLICT: regular file %s already exists", destination);
 		}
 
-		if (!CHECKING_CONFLICTS(options))
+		if (!options.conflicts)
 			exit(EXIT_FAILURE);
 	}
 }
 
 static void
-create_link(struct options *options,
-	    char *source, char *destination, char *filename)
+create_link(char *source, char *destination, char *filename)
 {
 	char *link_target;
 	char *rpath;
 
-	assert(options != NULL);
 	assert(source != NULL);
 	assert(destination != NULL);
 	assert(filename != NULL);
@@ -173,15 +161,15 @@ create_link(struct options *options,
 
 	rpath = relative_path(link_target, source);
 
-	if (!PRETENDING(options) && chdir(destination) == -1)
+	if (!options.pretend && chdir(destination) == -1)
 		err(EXIT_FAILURE, "%s", destination);
 
-	if (BEING_VERBOSE(options))
+	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
 
-	detect_conflict(options, link_target);
+	detect_conflict(link_target);
 
-	if (!PRETENDING(options) && symlink(rpath, filename) == -1)
+	if (!options.pretend && symlink(rpath, filename) == -1)
 		err(EXIT_FAILURE, "couldn't link %s to %s", rpath, filename);
 
 	free(rpath);
@@ -189,19 +177,18 @@ create_link(struct options *options,
 }
 
 static void
-delete_link(struct options *options, char *destination, char *filename)
+delete_link(char *destination, char *filename)
 {
 	char *full_dest;
 	struct stat buf;
 	int status;
 
-	assert(options != NULL);
 	assert(destination != NULL);
 	assert(filename != NULL);
 
 	full_dest = append_path(destination, filename);
 
-	if (BEING_VERBOSE(options))
+	if (options.verbose)
 		(void)printf("rm %s\n", full_dest);
 
 	status = lstat(full_dest, &buf);
@@ -233,7 +220,7 @@ delete_link(struct options *options, char *destination, char *filename)
 			link_target[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
 			abs = absolute_path(link_target);
 
-			p = strstr(abs, options->source_dir);
+			p = strstr(abs, options.source_dir);
 
 			if (p == NULL || p != abs) {
 				errx(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
@@ -254,37 +241,35 @@ delete_link(struct options *options, char *destination, char *filename)
 		}
 	}
 
-	if (!PRETENDING(options) && unlink(full_dest) == -1 && errno != ENOENT)
+	if (!options.pretend && unlink(full_dest) == -1 && errno != ENOENT)
 		err(EXIT_FAILURE, "couldn't delete link %s", full_dest);
 cleanup:
 	free(full_dest);
 }
 
 static void
-create_dir(struct options *options, char *dirname, mode_t mode)
+create_dir(char *dirname, mode_t mode)
 {
 
-	assert(options != NULL);
 	assert(dirname != NULL);
 
-	if (BEING_VERBOSE(options))
+	if (options.verbose)
 		(void)printf("mkdir %s\n", dirname);
 
-	if (!PRETENDING(options) && mkdir(dirname, mode) == -1 && errno != EEXIST)
+	if (!options.pretend && mkdir(dirname, mode) == -1 && errno != EEXIST)
 		err(EXIT_FAILURE, "couldn't create directory %s", dirname);
 }
 
 static void
-delete_dir(struct options *options, char *dirname)
+delete_dir(char *dirname)
 {
 
-	assert(options != NULL);
 	assert(dirname != NULL);
 
-	if (BEING_VERBOSE(options))
+	if (options.verbose)
 		(void)printf("rmdir %s\n", dirname);
 
-	if (!PRETENDING(options)) {
+	if (!options.pretend) {
 		int status = rmdir(dirname);
 
 		/*
@@ -301,16 +286,16 @@ delete_dir(struct options *options, char *dirname)
 }
 
 static void
-process_package(struct options *options, char *source, char *destination)
+process_package(char *source, char *destination)
 {
 	struct stat buf;
 	char *dest_dir;
 	char *dirname;
 
-	assert(options != NULL);
 	assert(source != NULL);
 	assert(destination != NULL);
-	assert(INSTALLING(options) || UNINSTALLING(options));
+	assert(options.operation_mode == INSTALL
+	       || options.operation_mode == UNINSTALL);
 
 	if (lstat(source, &buf) == -1)
 		err(EXIT_FAILURE, "couldn't access file %s", source);
@@ -320,20 +305,20 @@ process_package(struct options *options, char *source, char *destination)
 	if (S_ISDIR(buf.st_mode)) {
 		dest_dir = append_path(destination, dirname);
 
-		if (INSTALLING(options))
-			create_dir(options, dest_dir, buf.st_mode);
+		if (options.operation_mode == INSTALL)
+			create_dir(dest_dir, buf.st_mode);
 
-		process_directory(options, source, dest_dir);
+		process_directory(source, dest_dir);
 
-		if (UNINSTALLING(options))
-			delete_dir(options, dest_dir);
+		if (options.operation_mode == UNINSTALL)
+			delete_dir(dest_dir);
 
 		free(dest_dir);
 	} else {
-		if (INSTALLING(options))
-			create_link(options, source, destination, dirname);
-		else if (UNINSTALLING(options))
-			delete_link(options, destination, dirname);
+		if (options.operation_mode == INSTALL)
+			create_link(source, destination, dirname);
+		else if (options.operation_mode == UNINSTALL)
+			delete_link(destination, dirname);
 		else
 			err(EXIT_FAILURE,
 			    "Assertion failed: Neither installing or uninstalling.");
@@ -365,69 +350,68 @@ usage(int status)
 }
 
 static void
-options_init(struct options *options, int argc, char **argv)
+options_init(int argc, char **argv)
 {
 	int ch, t_flag;
 	size_t len;
 
-	assert(options != NULL);
 	assert(argc > 0);
 	assert(argv != NULL);
 
-	options->operation_mode = INSTALL;
-	options->verbose = options->pretend = options->conflicts = 0;
+	options.operation_mode = INSTALL;
+	options.verbose = options.pretend = options.conflicts = 0;
 
-	options->source_dir = NULL;
-	options->target_dir = NULL;
+	options.source_dir = NULL;
+	options.target_dir = NULL;
 
 	t_flag = 0;                /* Whether the -t flag was found or not. */
 
 	while ((ch = getopt(argc, argv, "cd:DhnRt:v")) != -1)
 		switch (ch) {
 		case 'c':
-			options->conflicts = options->pretend = 1;
+			options.conflicts = options.pretend = 1;
 			break;
 		case 'd':
-			if (options->source_dir != NULL)
-				free(options->source_dir);
-			if ((options->source_dir = strdup(optarg)) == NULL)
+			if (options.source_dir != NULL)
+				free(options.source_dir);
+			if ((options.source_dir = strdup(optarg)) == NULL)
 				err(EXIT_FAILURE, NULL);
 
 			/*
 			 * If the target dir was set by a previous -d flag,
 			 * reset it.
 			 */
-			if (options->target_dir != NULL && !t_flag) {
-				free(options->target_dir);
-				options->target_dir = NULL;
+			if (options.target_dir != NULL && !t_flag) {
+				free(options.target_dir);
+				options.target_dir = NULL;
 			}
 
-			if (options->target_dir == NULL)
-				options->target_dir = directory_name(options->source_dir);
+			if (options.target_dir == NULL)
+				options.target_dir = directory_name(options.source_dir);
 			break;
 		case 'D':
-			options->operation_mode = UNINSTALL;
+			options.operation_mode = UNINSTALL;
 			break;
 		case 'h':
 			usage(EXIT_SUCCESS);
 			break;
 		case 'n':
-			options->pretend = 1;
+			options.pretend = 1;
 			break;
 		case 'R':
-			options->operation_mode = REINSTALL;
+			options.operation_mode = REINSTALL;
 			break;
 		case 't':
-			if (options->target_dir != NULL)
-				free(options->target_dir);
+			if (options.target_dir != NULL)
+				free(options.target_dir);
 
-			if ((options->target_dir = strdup(optarg)) == NULL)
+			if ((options.target_dir = strdup(optarg)) == NULL)
 				err(EXIT_FAILURE, NULL);
 
 			t_flag = 1;
 			break;
 		case 'v':
-			options->verbose = 1;
+			options.verbose = 1;
 			break;
 		case '?':
 		default:
@@ -443,66 +427,63 @@ options_init(struct options *options, int argc, char **argv)
 	 * If no stow directory was given in the command line, use the
 	 * current directory.
 	 */
-	if (options->source_dir == NULL) {
-		if ((options->source_dir = malloc(sizeof(char) * _POSIX_PATH_MAX)) == NULL)
+	if (options.source_dir == NULL) {
+		if ((options.source_dir = malloc(sizeof(char) * _POSIX_PATH_MAX)) == NULL)
 			err(EXIT_FAILURE, NULL);
 
-		if (getcwd(options->source_dir, _POSIX_PATH_MAX) == NULL)
+		if (getcwd(options.source_dir, _POSIX_PATH_MAX) == NULL)
 			err(EXIT_FAILURE, NULL);
 	}
 
-	make_absolute_path(&options->source_dir);
+	make_absolute_path(&options.source_dir);
 
 	/*
 	 * If no target directory was given in the command line, use
 	 * source directory parent.
 	 */
-	if (options->target_dir == NULL)
-		options->target_dir = directory_name(options->source_dir);
+	if (options.target_dir == NULL)
+		options.target_dir = directory_name(options.source_dir);
 
-	make_absolute_path(&options->target_dir);
+	make_absolute_path(&options.target_dir);
 
-	if ((options->package_name = strdup(argv[optind])) == NULL)
+	if ((options.package_name = strdup(argv[optind])) == NULL)
 		err(EXIT_FAILURE, NULL);
 
 	/* Remove trailing '/' from package name. */
-	len = strlen(options->package_name);
-	while (options->package_name[--len] == '/')
-		options->package_name[len] = '\0';
+	len = strlen(options.package_name);
+	while (options.package_name[--len] == '/')
+		options.package_name[len] = '\0';
 
-	options->package_dir =
-		append_path(options->source_dir, options->package_name);
+	options.package_dir =
+		append_path(options.source_dir, options.package_name);
 }
 
 static void
-options_free(struct options *options)
+options_free(void)
 {
 
-	assert(options != NULL);
-
-	free(options->package_dir);
-	free(options->package_name);
-	free(options->target_dir);
-	free(options->source_dir);
+	free(options.package_dir);
+	free(options.package_name);
+	free(options.target_dir);
+	free(options.source_dir);
 }
 
 int
 main(int argc, char **argv)
 {
-	struct options options;
 
-	options_init(&options, argc, argv);
+	options_init(argc, argv);
 
-	if (REINSTALLING(&options)) {
+	if (options.operation_mode == REINSTALL) {
 		options.operation_mode = UNINSTALL;
-		process_directory(&options, options.package_dir, options.target_dir);
+		process_directory(options.package_dir, options.target_dir);
 		options.operation_mode = INSTALL;
-		process_directory(&options, options.package_dir, options.target_dir);
+		process_directory(options.package_dir, options.target_dir);
 	} else {
-		process_directory(&options, options.package_dir, options.target_dir);
+		process_directory(options.package_dir, options.target_dir);
 	}
 
-	options_free(&options);
+	options_free();
 
 	return EXIT_SUCCESS;
 }
