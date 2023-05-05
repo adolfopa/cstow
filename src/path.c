@@ -19,7 +19,7 @@ relative_path(char *from, char *to)
 {
 	char *from_copy;
 	char *to_copy;
-	char buffer[_POSIX_PATH_MAX];
+	char buffer[PATH_MAX];
 	int retval;
 
 	assert(from != NULL);
@@ -30,7 +30,7 @@ relative_path(char *from, char *to)
 	if ((to_copy = strdup(to)) == NULL)
 		err(EXIT_FAILURE, NULL);
 
-	retval = make_relative_path(from_copy, to_copy, buffer, _POSIX_PATH_MAX);
+	retval = make_relative_path(from_copy, to_copy, buffer, PATH_MAX);
 
 	free(to_copy);
 	free(from_copy);

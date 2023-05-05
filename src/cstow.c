@@ -125,16 +125,16 @@ detect_conflict(char *destination)
 		err(EXIT_FAILURE, "couldn't lstat file %s", destination);
 	} else if (status != -1) {
 		if (S_ISLNK(buf.st_mode)) {
-			char linked_file[_POSIX_PATH_MAX];
+			char linked_file[PATH_MAX];
 			ssize_t len;
 
 			/* FIXME: a link to a link will report the incorrect name. */
-			len = readlink(destination, linked_file, _POSIX_PATH_MAX);
+			len = readlink(destination, linked_file, PATH_MAX);
 
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s", destination);
 
-			linked_file[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
+			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
 
 			warnx("CONFLICT: link %s points to %s",
 			      destination, linked_file);
@@ -204,12 +204,12 @@ delete_link(char *destination, char *filename)
 			 * doesn't point inside the package we are unstowing.
 			 */
 
-			char link_target[_POSIX_PATH_MAX];
+			char link_target[PATH_MAX];
 			char *abs;
 			char *p;
 			ssize_t len;
 
-			len = readlink(full_dest, link_target, _POSIX_PATH_MAX);
+			len = readlink(full_dest, link_target, PATH_MAX);
 
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s", full_dest);
@@ -217,7 +217,7 @@ delete_link(char *destination, char *filename)
 			if (chdir(destination) == -1)
 				err(EXIT_FAILURE, NULL);
 
-			link_target[len == _POSIX_PATH_MAX ? len - 1 : len] = '\0';
+			link_target[len == PATH_MAX ? len - 1 : len] = '\0';
 			abs = absolute_path(link_target);
 
 			p = strstr(abs, options.source_dir);
@@ -428,10 +428,10 @@ options_init(int argc, char **argv)
 	 * current directory.
 	 */
 	if (options.source_dir == NULL) {
-		if ((options.source_dir = malloc(sizeof(char) * _POSIX_PATH_MAX)) == NULL)
+		if ((options.source_dir = malloc(sizeof(char) * PATH_MAX)) == NULL)
 			err(EXIT_FAILURE, NULL);
 
-		if (getcwd(options.source_dir, _POSIX_PATH_MAX) == NULL)
+		if (getcwd(options.source_dir, PATH_MAX) == NULL)
 			err(EXIT_FAILURE, NULL);
 	}
 
