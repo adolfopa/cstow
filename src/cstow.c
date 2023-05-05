@@ -218,7 +218,8 @@ delete_link(char *destination, char *filename)
 				err(EXIT_FAILURE, NULL);
 
 			link_target[len == PATH_MAX ? len - 1 : len] = '\0';
-			abs = absolute_path(link_target);
+			if ((abs = realpath(link_target, NULL)) == NULL)
+				err(EXIT_FAILURE, "%s", link_target);
 
 			p = strstr(abs, options.source_dir);
 
@@ -352,6 +353,7 @@ usage(int status)
 static void
 options_init(int argc, char **argv)
 {
+	char *p;
 	int ch, t_flag;
 	size_t len;
 
@@ -435,7 +437,10 @@ options_init(int argc, char **argv)
 			err(EXIT_FAILURE, NULL);
 	}
 
-	make_absolute_path(&options.source_dir);
+	if ((p = realpath(options.source_dir, NULL)) == NULL)
+		err(EXIT_FAILURE, "%s", options.source_dir);
+	free(options.source_dir);
+	options.source_dir = p;
 
 	/*
 	 * If no target directory was given in the command line, use
@@ -444,7 +449,10 @@ options_init(int argc, char **argv)
 	if (options.target_dir == NULL)
 		options.target_dir = directory_name(options.source_dir);
 
-	make_absolute_path(&options.target_dir);
+	if ((p = realpath(options.target_dir, NULL)) == NULL)
+		err(EXIT_FAILURE, "%s", options.target_dir);
+	free(options.target_dir);
+	options.target_dir = p;
 
 	if ((options.package_name = strdup(argv[optind])) == NULL)
 		err(EXIT_FAILURE, NULL);

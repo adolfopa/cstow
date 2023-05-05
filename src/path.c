@@ -149,32 +149,3 @@ directory_name(char *path)
 
 	return name;
 }
-
-char *
-absolute_path(char *path)
-{
-	char *abs;
-
-	assert(path != NULL);
-
-	abs = realpath(path, NULL);
-
-	if (abs == NULL)
-		err(EXIT_FAILURE, "%s", path);
-
-	return abs;
-}
-
-void
-make_absolute_path(char **path)
-{
-	char *abs;
-
-	assert(path != NULL);
-	assert(*path != NULL);
-
-	abs = absolute_path(*path);
-
-	free(*path);
-	*path = abs;
-}
