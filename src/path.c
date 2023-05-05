@@ -12,17 +12,6 @@
 #define ROOT_PATH "/"
 #define FILE_SEPARATOR '/'
 
-static char *
-skip_leading(char *s, char c)
-{
-	assert(s != NULL);
-
-	while (*s == c)
-		s++;
-
-	return s;
-}
-
 #define min(x,y) ((x) < (y) ? (x) : (y))
 
 char *
@@ -63,8 +52,10 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
 	assert(to != NULL);
 	assert(buffer != NULL);
 
-	from = skip_leading(from, FILE_SEPARATOR);
-	to = skip_leading(to, FILE_SEPARATOR);
+	while (*from == FILE_SEPARATOR)
+		from++;
+	while (*to == FILE_SEPARATOR)
+		to++;
 
 	p = strtok_r(from, ROOT_PATH, &from_ctx);
 	q = strtok_r(to, ROOT_PATH, &to_ctx);
