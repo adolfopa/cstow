@@ -156,17 +156,17 @@ create_link(char *source, char *destination, char *filename)
 	assert(destination != NULL);
 	assert(filename != NULL);
 
-	link_target = append_path(destination, filename);
-
-	rpath = relative_path(link_target, source);
-
 	if (!options.pretend && chdir(destination) == -1)
 		err(EXIT_FAILURE, "%s", destination);
+
+	link_target = append_path(destination, filename);
 
 	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
 
 	detect_conflict(link_target);
+
+	rpath = relative_path(link_target, source);
 
 	if (!options.pretend && symlink(rpath, filename) == -1)
 		err(EXIT_FAILURE, "couldn't link %s to %s", rpath, filename);
