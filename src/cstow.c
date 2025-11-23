@@ -70,7 +70,6 @@ static void delete_dir(char *);
 static void delete_link(char *, char *);
 static void detect_conflict(char *);
 int main(int, char **);
-static void options_init(int, char **);
 static void process_directory(char *, char *);
 static void process_package(char *, char *);
 static void usage(int);
@@ -350,8 +349,8 @@ usage(int status)
 	exit(status);
 }
 
-static void
-options_init(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	char *p;
 	int ch, t_flag;
@@ -464,23 +463,6 @@ options_init(int argc, char **argv)
 
 	options.package_dir =
 		append_path(options.source_dir, options.package_name);
-}
-
-static void
-options_free(void)
-{
-
-	free(options.package_dir);
-	free(options.package_name);
-	free(options.target_dir);
-	free(options.source_dir);
-}
-
-int
-main(int argc, char **argv)
-{
-
-	options_init(argc, argv);
 
 	if (options.operation_mode == REINSTALL) {
 		options.operation_mode = UNINSTALL;
@@ -491,7 +473,10 @@ main(int argc, char **argv)
 		process_directory(options.package_dir, options.target_dir);
 	}
 
-	options_free();
+	free(options.package_dir);
+	free(options.package_name);
+	free(options.target_dir);
+	free(options.source_dir);
 
 	return EXIT_SUCCESS;
 }
