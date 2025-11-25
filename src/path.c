@@ -95,15 +95,14 @@ make_relative_path(char *from, char *to, char *buffer, size_t n)
 
 		q = strtok_r(NULL, ROOT_PATH, &to_ctx);
 
-		/* if there are more items, add a FILE_SEPARATOR between this and the next one. */
 		if (q != NULL)
 			buffer[n - remaining--] = FILE_SEPARATOR;
 	}
 
 	if (n > 0)
-		buffer[n - 1] = '\0'; /* make sure `buffer' is a valid string no matter what */
+		buffer[n - 1] = '\0';
 
-	return remaining == 0;     /* if remaining == 0, the path didn't fit in the buffer. */
+	return remaining == 0;
 }
 
 char *

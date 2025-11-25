@@ -28,7 +28,6 @@ $ cstow
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
-@           Useful for detecting errors without damaging anything.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -t DIR, Set the target directory to DIR.  If not
@@ -50,7 +49,6 @@ $ cstow -z
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
-@           Useful for detecting errors without damaging anything.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -t DIR, Set the target directory to DIR.  If not
@@ -74,7 +72,6 @@ $ cstow -h
 |   -D,     Delete the package instead of installing it.
 |   -h,     Show this help message.
 |   -n,     Do not perform any of the operations, only pretend.
-|           Useful for detecting errors without damaging anything.
 |   -R,     Reinstall a package.  Equivalent to invoking cstow
 |           to install and deinstall in sequence.
 |   -t DIR, Set the target directory to DIR.  If not
@@ -199,7 +196,6 @@ $ cstow -D
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
-@           Useful for detecting errors without damaging anything.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -t DIR, Set the target directory to DIR.  If not

@@ -127,18 +127,20 @@ detect_conflict(char *destination)
 			char linked_file[PATH_MAX];
 			ssize_t len;
 
-			/* FIXME: a link to a link will report the incorrect name. */
+			/* FIXME: a link to a link will report incorrect name. */
 			len = readlink(destination, linked_file, PATH_MAX);
 
 			if (len == -1)
-				err(EXIT_FAILURE, "couldn't read link %s", destination);
+				err(EXIT_FAILURE, "couldn't read link %s",
+				    destination);
 
 			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
 
 			warnx("CONFLICT: link %s points to %s",
 			      destination, linked_file);
 		} else {
-			warnx("CONFLICT: regular file %s already exists", destination);
+			warnx("CONFLICT: regular file %s already exists",
+			      destination);
 		}
 
 		if (!options.conflicts)
@@ -211,7 +213,8 @@ delete_link(char *destination, char *filename)
 			len = readlink(full_dest, link_target, PATH_MAX);
 
 			if (len == -1)
-				err(EXIT_FAILURE, "couldn't read link %s", full_dest);
+				err(EXIT_FAILURE, "couldn't read link %s",
+				    full_dest);
 
 			if (chdir(destination) == -1)
 				err(EXIT_FAILURE, NULL);
@@ -223,7 +226,8 @@ delete_link(char *destination, char *filename)
 			p = strstr(abs, options.source_dir);
 
 			if (p == NULL || p != abs) {
-				errx(EXIT_FAILURE, "%s not a valid symlink (points to %s)",
+				errx(EXIT_FAILURE,
+				     "%s not a valid symlink (points to %s)",
 				     full_dest, link_target);
 			}
 
@@ -281,7 +285,8 @@ delete_dir(char *dirname)
 		 */
 
 		if (status == -1 && errno != ENOENT && errno != ENOTEMPTY)
-			err(EXIT_FAILURE, "couldn't delete directory %s", dirname);
+			err(EXIT_FAILURE, "couldn't delete directory %s",
+			    dirname);
 	}
 }
 
@@ -320,8 +325,7 @@ process_package(char *source, char *destination)
 		else if (options.operation_mode == UNINSTALL)
 			delete_link(destination, dirname);
 		else
-			err(EXIT_FAILURE,
-			    "Assertion failed: Neither installing or uninstalling.");
+			err(EXIT_FAILURE, "neither installing nor uninstalling.");
 	}
 }
 
@@ -330,21 +334,21 @@ usage(int status)
 {
 	FILE *stream = status ? stderr : stdout;
 
-	(void)fprintf(stream,
-		      "Usage: cstow [-cdDhnRtv] <package-name>\n"
-		      "  -c,     Do not exit when a conflict is found, continue as if\n"
-		      "          nothing happened.  This options implies -n.\n"
-		      "  -d DIR, Set the package directory to DIR.  If not\n"
-		      "          specified the current directory will be used.\n"
-		      "  -D,     Delete the package instead of installing it.\n"
-		      "  -h,     Show this help message.\n"
-		      "  -n,     Do not perform any of the operations, only pretend.\n"
-		      "          Useful for detecting errors without damaging anything.\n"
-		      "  -R,     Reinstall a package.  Equivalent to invoking cstow\n"
-		      "          to install and deinstall in sequence.\n"
-		      "  -t DIR, Set the target directory to DIR.  If not\n"
-		      "          specified the parent directory will be used.\n"
-		      "  -v,     Be verbose, showing each operation performed.\n");
+	(void)fprintf(
+		stream,
+		"Usage: cstow [-cdDhnRtv] <package-name>\n"
+		"  -c,     Do not exit when a conflict is found, continue as if\n"
+		"          nothing happened.  This options implies -n.\n"
+		"  -d DIR, Set the package directory to DIR.  If not\n"
+		"          specified the current directory will be used.\n"
+		"  -D,     Delete the package instead of installing it.\n"
+		"  -h,     Show this help message.\n"
+		"  -n,     Do not perform any of the operations, only pretend.\n"
+		"  -R,     Reinstall a package.  Equivalent to invoking cstow\n"
+		"          to install and deinstall in sequence.\n"
+		"  -t DIR, Set the target directory to DIR.  If not\n"
+		"          specified the parent directory will be used.\n"
+		"  -v,     Be verbose, showing each operation performed.\n");
 
 	exit(status);
 }
@@ -365,7 +369,7 @@ main(int argc, char **argv)
 	options.source_dir = NULL;
 	options.target_dir = NULL;
 
-	t_flag = 0;                /* Whether the -t flag was found or not. */
+	t_flag = 0;
 
 	while ((ch = getopt(argc, argv, "cd:DhnRt:v")) != -1)
 		switch (ch) {
@@ -388,7 +392,8 @@ main(int argc, char **argv)
 			}
 
 			if (options.target_dir == NULL)
-				options.target_dir = directory_name(options.source_dir);
+				options.target_dir =
+					directory_name(options.source_dir);
 			break;
 		case 'D':
 			options.operation_mode = UNINSTALL;
@@ -429,7 +434,8 @@ main(int argc, char **argv)
 	 * current directory.
 	 */
 	if (options.source_dir == NULL) {
-		if ((options.source_dir = malloc(sizeof(char) * PATH_MAX)) == NULL)
+		options.source_dir = malloc(sizeof(char) * PATH_MAX);
+		if (options.source_dir == NULL)
 			err(EXIT_FAILURE, NULL);
 
 		if (getcwd(options.source_dir, PATH_MAX) == NULL)
