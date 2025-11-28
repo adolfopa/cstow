@@ -2,7 +2,7 @@
 ## Where to install the binaries
 ##
 
-INSTALL_DIR = /usr/local/bin
+PREFIX ?= /usr/local
 
 ##
 ## Compiler flags
@@ -25,7 +25,7 @@ clean:
 	cd src && $(MAKE) clean
 
 install: compile
-	cd src && $(MAKE) INSTALL_DIR=$(INSTALL_DIR) install
+	cd src && $(MAKE) PREFIX=$(PREFIX) install
 
 test:
 	cd src && $(MAKE) CFLAGS="$(CFLAGS)" test

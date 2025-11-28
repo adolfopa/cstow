@@ -33,13 +33,13 @@ Installation
 
 To compile and install cstow in your system:
 
-  1. Edit the `Makefile` file and change the `INSTALL_DIR` variable to
+  1. Edit the `Makefile` file and change the `PREFIX` variable to
   suit your system.
 
   2. Optionally, you can tune the `CFLAGS` variable.
 
   3. Execute the `make install` command (you may need root privileges
-  depending on the value of `INSTALL_DIR`).  This will compile the
+  depending on the value of `PREFIX`).  This will compile the
   sources and copy the executable to the place you defined in the
   previous step.
 
