@@ -40,7 +40,7 @@ The same will happen when giving it an unrecognized option:
 
 ```sh
 $ cstow -z
-@ cstow: $(awk -v h=unknown-arg -f ../hack.awk ../TESTS.hacks)
+@ cstow: $(awk -v h=unknown-arg -f hack.awk TESTS.hacks)
 @ Usage: cstow [-cdDhnRtv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.

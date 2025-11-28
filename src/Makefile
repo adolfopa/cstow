@@ -1,12 +1,10 @@
-TUSH_HOME=$$(pwd)/../tush
-
 all: cstow
 
 cstow: cstow.o path.o
 	$(CC) $(CFLAGS) -o cstow cstow.o path.o
 
 test: cstow
-	@PATH=$$PATH:$(TUSH_HOME)/bin:$$(pwd) tush-check -x TESTS.md
+	@PATH=$$PATH:$$(pwd) ./ts TESTS.md
 
 clean:
 	rm -f cstow *.o *~

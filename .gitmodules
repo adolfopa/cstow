@@ -1,4 +1,0 @@
-[submodule "tush"]
-	path = tush
-	url = git@github.com:adolfopa/tush.git
-	branch = master
