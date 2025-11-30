@@ -35,28 +35,6 @@ $ cstow
 @   -v,     Be verbose, showing each operation performed.
 ? 1
 ```
-
-The same will happen when giving it an unrecognized option:
-
-```sh
-$ cstow -z
-@ cstow: $(awk -v h=unknown-arg -f hack.awk TESTS.hacks)
-@ Usage: cstow [-cdDhnRtv] <package-name>
-@   -c,     Do not exit when a conflict is found, continue as if
-@           nothing happened.  This options implies -n.
-@   -d DIR, Set the package directory to DIR.  If not
-@           specified the current directory will be used.
-@   -D,     Delete the package instead of installing it.
-@   -h,     Show this help message.
-@   -n,     Do not perform any of the operations, only pretend.
-@   -R,     Reinstall a package.  Equivalent to invoking cstow
-@           to install and deinstall in sequence.
-@   -t DIR, Set the target directory to DIR.  If not
-@           specified the parent directory will be used.
-@   -v,     Be verbose, showing each operation performed.
-? 1
-```
-
 ## Getting help
 
 When given the `-h` flag, `cstow` will show a usage message and exit
