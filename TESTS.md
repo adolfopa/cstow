@@ -264,3 +264,9 @@ $ cstow -d packages -v -D pkg
 | rm $(pwd)/d0/f0
 | rmdir $(pwd)/d0
 ```
+
+## Clean up
+
+```
+$ [ -d packages ] && rm -rf packages
+```
