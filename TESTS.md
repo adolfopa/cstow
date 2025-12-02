@@ -118,6 +118,15 @@ $ [ -d target/d0 ]
 $ rm -rf target
 ```
 
+Any directory works, the package and target directory don't have to share a common parent:
+
+```sh
+$ mkdir /tmp/target
+$ cstow -d packages -t /tmp/target pkg
+$ [ -d /tmp/target/d0 ]
+$ rm -rf /tmp/target
+```
+
 As with the `-d` flag, if more than one is provided, the last one is used:
 
 ```sh
