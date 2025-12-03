@@ -42,8 +42,6 @@
 #include <errno.h>
 #include <libgen.h>
 #include <limits.h>
-#include <stdarg.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -144,18 +142,15 @@ append_path(char *s, char *t)
 static char *
 directory_name(char *path)
 {
-	char *copy;
-	char *name;
+	size_t len;
 
 	assert(path != NULL);
 
-	if ((copy = strdup(path)) == NULL)
-		err(EXIT_FAILURE, NULL);
-	if ((name = strdup(dirname(copy))) == NULL)
-		err(EXIT_FAILURE, NULL);
-	free(copy);
-
-	return name;
+	for (len = strlen(path); len > 0 && path[--len] == '/';)
+		;
+	for (; len > 0 && path[len] != '/'; len--)
+		;
+	return len == 0 ? strdup(".") : strndup(path, len);
 }
 
 static void
