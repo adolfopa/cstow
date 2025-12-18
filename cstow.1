@@ -1,0 +1,153 @@
+.Dd December 14, 2025
+.Dt CSTOW 1
+.Os
+.Sh NAME
+.Nm cstow
+.Nd install packages
+.Sh SYNOPSIS
+.Nm cstow
+.Op Fl cDhnrv
+.Op Fl d Ar directory
+.Op Fl t Ar directory
+.Ar package
+.Sh DESCRIPTION
+The
+.Nm
+utility installs a package by symlinking its contents.
+Its main use case is to install software built from source.
+.Pp
+A
+.Em package
+is a directory containing a standard hierarchy as described in
+.Xr hier 7 .
+In other words, a package is what you typically get after doing
+.Cm make install .
+.Pp
+A
+.Em package depot
+is a directory with a bunch of packages (subdirectories).
+You create a depot by installing multiple packages in it.
+For example,
+.Bd -literal -offset indent
+$ cd proj1 && PREFIX=/usr/local/cstow/pkg1 make install
+$ cd proj2 && PREFIX=/usr/local/cstow/pkg2 make install
+.Ed
+.Pp
+will create two packages
+.Em pkg1
+and
+.Em pkg2
+in the depot
+.Pa /usr/local/cstow .
+.Pp
+Assuming the current working directory is a package depot,
+running the command:
+.Dl $ Nm cstow Ar pkg
+will install the
+.Ar pkg
+package by symlinking its contents onto the depot's parent directory.
+.Bd -literal -offset indent
+$ cd /usr/local/cstow
+$ ls ../bin # nothing
+$ ls pkg/bin
+foo
+$ cstow pkg
+$ ls ../bin
+@foo
+.Ed
+.Pp
+.Nm
+accepts the following flags:
+.Bl -tag -width Ds
+.It Fl c
+When
+.Nm
+detects a conflict,
+continue processing the rest of the files instead of failing.
+The
+.Fl c
+flag implies the use of the
+.Fl n
+flag.
+.It Fl D
+Uninstall a package.
+The
+.Fl D
+flag will cause
+.Nm
+to uninstall the package by removing all symlinks pointing to it.
+Note that directories won't be removed, even if empty.
+.It Fl h
+Display a summary of all available options and exit.
+.It Fl n
+Check that all the actions necessary to install a package succeed,
+but don't perform any of them.
+.It Fl r
+Reinstall a package.
+This is equivalent to running
+.Nm
+first with the
+.Fl D
+flag and immediately installing the package again.
+.It Fl v
+Be verbose.
+.Nm
+will print to stdout information about each operation.
+.It Fl d Ar directory
+Use
+.Ar directory
+as a location to look for packages.
+By default, 
+.Nm
+will use the current working directory.
+.It Fl t Ar directory
+Use
+.Ar directory
+as a target location.
+.Nm
+will symlink all the package contents to this directory.
+By default,
+.Nm
+will use the parent of the directory provided by
+.Fl d .
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Unless stated otherwise,
+the following examples assume that the current working directory is a depot.
+
+Installing packages is the default action,
+.Dl $ Nm cstow Ar pkg
+You can deinstall a package by using the
+.Fl D
+flag,
+.Dl $ Nm cstow Fl D Ar pkg
+If the contents of the package have changed,
+use the
+.Fl r
+flag to reinstall the package:
+.Dl $ Nm cstow Fl r Ar pkg
+You can set the depot and target directory with the
+.Fl d
+and
+.Fl t
+flags:
+.Dl $ Nm cstow Fl d Ar /var/cstow Fl t Ar /opt Ar pkg
+.Sh SEE ALSO
+.Xr hier 7
+.Xr make 1
+.Xr realpath 3
+.Sh AUTHORS
+.An Adolfo Perez Alvarez Aq Mt adolfopa@sdf.org
+.Sh BUGS
+.Nm
+will fail to uninstall a package that contains a symbolic link
+pointing outside the package directory.
+This happens because cstow uses the
+.Fn realpath
+function to resolve filenames;
+as this function returns the target filename for symbolic links,
+.Nm
+thinks that it is trying to delete a file that is not owned by the package and
+refuses to remove it.
