@@ -47,7 +47,6 @@
 
 #define _GNU_SOURCE
 #include <string.h>
-
 #include <unistd.h>
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
@@ -76,7 +75,7 @@ static void process_package(char *, char *);
 static char *relative_path(char *, char *);
 static void usage(int);
 
-#define min(x,y) ((x) < (y) ? (x) : (y))
+#define min(x, y) ((x) < (y) ? (x) : (y))
 
 static char *
 relative_path(char *src, char *dst)
@@ -95,10 +94,10 @@ relative_path(char *src, char *dst)
 	while (*dst == '/')
 		dst++;
 	for (p = src, q = dst; *p && *q && *p == *q; p++, q++)
-	  ;
+		;
 	if (!*p || !*q)
 		return NULL;
-	for (;p > src && q > dst && *p != '/'; p--, q--)
+	for (; p > src && q > dst && *p != '/'; p--, q--)
 		;
 	r = buffer;
 	while (*p && n > 3)
@@ -205,7 +204,8 @@ detect_conflict(char *destination)
 			char linked_file[PATH_MAX];
 			ssize_t len;
 
-			/* FIXME: a link to a link will report incorrect name. */
+			/* FIXME: a link to a link will report incorrect name.
+			 */
 			len = readlink(destination, linked_file, PATH_MAX);
 
 			if (len == -1)
@@ -214,8 +214,8 @@ detect_conflict(char *destination)
 
 			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
 
-			warnx("CONFLICT: link %s points to %s",
-			      destination, linked_file);
+			warnx("CONFLICT: link %s points to %s", destination,
+			      linked_file);
 		} else {
 			warnx("CONFLICT: regular file %s already exists",
 			      destination);
@@ -332,7 +332,6 @@ cleanup:
 static void
 create_dir(char *dirname, mode_t mode)
 {
-
 	assert(dirname != NULL);
 
 	if (options.verbose)
@@ -345,7 +344,6 @@ create_dir(char *dirname, mode_t mode)
 static void
 delete_dir(char *dirname)
 {
-
 	assert(dirname != NULL);
 
 	if (options.verbose)
@@ -377,8 +375,8 @@ process_package(char *source, char *destination)
 
 	assert(source != NULL);
 	assert(destination != NULL);
-	assert(options.operation_mode == INSTALL
-	       || options.operation_mode == UNINSTALL);
+	assert(options.operation_mode == INSTALL ||
+	       options.operation_mode == UNINSTALL);
 
 	if (lstat(source, &buf) == -1)
 		err(EXIT_FAILURE, "couldn't access file %s", source);
@@ -403,7 +401,8 @@ process_package(char *source, char *destination)
 		else if (options.operation_mode == UNINSTALL)
 			delete_link(destination, dirname);
 		else
-			err(EXIT_FAILURE, "neither installing nor uninstalling.");
+			err(EXIT_FAILURE,
+			    "neither installing nor uninstalling.");
 	}
 }
 
@@ -471,8 +470,8 @@ main(int argc, char **argv)
 			}
 
 			if (options.target_dir == NULL)
-				options.target_dir =
-					directory_name(options.source_dir);
+				options.target_dir = directory_name(
+					options.source_dir);
 			break;
 		case 'D':
 			options.operation_mode = UNINSTALL;
@@ -549,8 +548,8 @@ main(int argc, char **argv)
 	while (options.package_name[--len] == '/')
 		options.package_name[len] = '\0';
 
-	options.package_dir =
-		append_path(options.source_dir, options.package_name);
+	options.package_dir = append_path(options.source_dir,
+					  options.package_name);
 
 	if (options.operation_mode == REINSTALL) {
 		options.operation_mode = UNINSTALL;
