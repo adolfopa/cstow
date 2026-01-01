@@ -55,6 +55,7 @@ struct {
 	int conflicts;
 	int verbose;
 	int pretend;
+	int dotfiles;
 	int operation_mode;
 	char *package_name;
 	char *source_dir;
@@ -239,6 +240,8 @@ create_link(char *source, char *destination, char *filename)
 	if (!options.pretend && chdir(destination) == -1)
 		err(EXIT_FAILURE, "%s", destination);
 
+	if (options.dotfiles && !strncmp("dot.", filename, 4))
+		filename += 3;
 	link_target = append_path(destination, filename);
 
 	if (options.verbose)
@@ -265,12 +268,13 @@ delete_link(char *destination, char *filename)
 	assert(destination != NULL);
 	assert(filename != NULL);
 
+	if (options.dotfiles && !strncmp("dot.", filename, 4))
+		filename += 3;
 	full_dest = append_path(destination, filename);
+	status = lstat(full_dest, &buf);
 
 	if (options.verbose)
 		(void)printf("rm %s\n", full_dest);
-
-	status = lstat(full_dest, &buf);
 
 	if (status == -1 && errno != ENOENT) {
 		err(EXIT_FAILURE, "couldn't access link %s", full_dest);
@@ -384,6 +388,8 @@ process_package(char *source, char *destination)
 	dirname = basename(source);
 
 	if (S_ISDIR(buf.st_mode)) {
+		if (options.dotfiles && !strncmp("dot.", dirname, 4))
+			dirname += 3;
 		dest_dir = append_path(destination, dirname);
 
 		if (options.operation_mode == INSTALL)
@@ -413,7 +419,7 @@ usage(int status)
 
 	(void)fprintf(
 		stream,
-		"Usage: cstow [-cdDhnRStv] <package-name>\n"
+		"Usage: cstow [-cdDhnoRStv] <package-name>\n"
 		"  -c,     Do not exit when a conflict is found, continue as if\n"
 		"          nothing happened.  This options implies -n.\n"
 		"  -d DIR, Set the package directory to DIR.  If not\n"
@@ -421,6 +427,8 @@ usage(int status)
 		"  -D,     Delete the package instead of installing it.\n"
 		"  -h,     Show this help message.\n"
 		"  -n,     Do not perform any of the operations, only pretend.\n"
+		"  -o,     Enable dotfile translation.  Replaces the 'dot.' prefix\n"
+		"          with a literal '.' in symbolic link names.\n"
 		"  -R,     Reinstall a package.  Equivalent to invoking cstow\n"
 		"          to install and deinstall in sequence.\n"
 		"  -S,     Install the package.\n"
@@ -442,14 +450,15 @@ main(int argc, char **argv)
 	assert(argv != NULL);
 
 	options.operation_mode = INSTALL;
-	options.verbose = options.pretend = options.conflicts = 0;
+	options.verbose = options.pretend = options.conflicts =
+		options.dotfiles = 0;
 
 	options.source_dir = NULL;
 	options.target_dir = NULL;
 
 	t_flag = 0;
 
-	while ((ch = getopt(argc, argv, "cd:DhnRSt:v")) != -1)
+	while ((ch = getopt(argc, argv, "cd:DhnoRSt:v")) != -1)
 		switch (ch) {
 		case 'c':
 			options.conflicts = options.pretend = 1;
@@ -481,6 +490,9 @@ main(int argc, char **argv)
 			break;
 		case 'n':
 			options.pretend = 1;
+			break;
+		case 'o':
+			options.dotfiles = 1;
 			break;
 		case 'R':
 			options.operation_mode = REINSTALL;

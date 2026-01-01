@@ -20,7 +20,7 @@ exit status and will show a brief usage message.
 
 ```sh
 $ cstow
-@ Usage: cstow [-cdDhnRStv] <package-name>
+@ Usage: cstow [-cdDhnoRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
 @   -d DIR, Set the package directory to DIR.  If not
@@ -28,6 +28,8 @@ $ cstow
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
+@   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
+@           with a literal \'.\' in symbolic link names.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -S,     Install the package.
@@ -43,7 +45,7 @@ with a success status (0).
 
 ```sh
 $ cstow -h
-| Usage: cstow [-cdDhnRStv] <package-name>
+| Usage: cstow [-cdDhnoRStv] <package-name>
 |   -c,     Do not exit when a conflict is found, continue as if
 |           nothing happened.  This options implies -n.
 |   -d DIR, Set the package directory to DIR.  If not
@@ -51,6 +53,8 @@ $ cstow -h
 |   -D,     Delete the package instead of installing it.
 |   -h,     Show this help message.
 |   -n,     Do not perform any of the operations, only pretend.
+|   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
+|           with a literal \'.\' in symbolic link names.
 |   -R,     Reinstall a package.  Equivalent to invoking cstow
 |           to install and deinstall in sequence.
 |   -S,     Install the package.
@@ -150,6 +154,35 @@ $ [ -d target/d0 ]
 $ rm -rf target
 ```
 
+The `-o` flags will replace the `dot.` prefix with a `.` in the target link
+file name.  This is useful when working with packages that contain config
+files that would be hidden if beginning with a dot.
+
+```sh
+$ touch packages/pkg/d0/dot.f1
+$ cd packages && cstow pkg
+$ [ -f d0/dot.f1 ]
+$ rm -rf d0
+$ cd packages && cstow -o pkg
+$ [ -f d0/.f1 ]
+$ rm -rf d0
+$ rm packages/pkg/d0/dot.f1
+```
+
+The `-o` flag will also replace the `dot.` prefix in directory names.
+
+```sh
+$ mkdir packages/pkg/dot.dh
+$ touch packages/pkg/dot.dh/dot.fh
+$ cd packages && cstow pkg
+$ [ -f dot.dh/dot.fh ]
+$ rm -rf d0 dot.dh
+$ cd packages && cstow -o pkg
+$ [ -f .dh/.fh ]
+$ rm -rf d0 .dh
+$ rm -rf packages/pkg/dot.dh
+```
+
 ## Unstowing packages
 
 To unstow (uninstall) a package, use the `-D` flag:
@@ -189,7 +222,7 @@ The `-D` requires an argument, the package name:
 
 ```sh
 $ cstow -D
-@ Usage: cstow [-cdDhnRStv] <package-name>
+@ Usage: cstow [-cdDhnoRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
 @   -d DIR, Set the package directory to DIR.  If not
@@ -197,6 +230,8 @@ $ cstow -D
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
+@   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
+@           with a literal \'.\' in symbolic link names.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -S,     Install the package.
@@ -204,6 +239,18 @@ $ cstow -D
 @           specified the parent directory will be used.
 @   -v,     Be verbose, showing each operation performed.
 ? 1
+```
+
+If the package was installed with the `-o` flag, you must supply the `-o` flag
+again when uninstalling.
+
+```sh
+$ touch packages/pkg/d0/dot.f1
+$ cd packages && cstow -o pkg
+$ [ -f d0/.f1 ]
+$ cd packages && cstow -Do pkg
+$ [ ! -f d0/.f1 ]
+$ rm packages/pkg/d0/dot.f1
 ```
 
 ## Restowing packages
