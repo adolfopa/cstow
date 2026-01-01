@@ -5,7 +5,7 @@ CFLAGS=-Wall -Wextra -O3
 .PHONY: clean install test
 cstow: cstow.o
 test: cstow
-	PATH=$${pwd}:$$PATH ./ts TESTS.md
+	PATH=$${PWD}:$$PATH ./ts TESTS.md
 clean:
 	rm -f cstow *.o *~
 install: cstow

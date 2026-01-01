@@ -20,7 +20,7 @@ exit status and will show a brief usage message.
 
 ```sh
 $ cstow
-@ Usage: cstow [-cdDhnRtv] <package-name>
+@ Usage: cstow [-cdDhnRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
 @   -d DIR, Set the package directory to DIR.  If not
@@ -30,6 +30,7 @@ $ cstow
 @   -n,     Do not perform any of the operations, only pretend.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
+@   -S,     Install the package.
 @   -t DIR, Set the target directory to DIR.  If not
 @           specified the parent directory will be used.
 @   -v,     Be verbose, showing each operation performed.
@@ -42,7 +43,7 @@ with a success status (0).
 
 ```sh
 $ cstow -h
-| Usage: cstow [-cdDhnRtv] <package-name>
+| Usage: cstow [-cdDhnRStv] <package-name>
 |   -c,     Do not exit when a conflict is found, continue as if
 |           nothing happened.  This options implies -n.
 |   -d DIR, Set the package directory to DIR.  If not
@@ -52,6 +53,7 @@ $ cstow -h
 |   -n,     Do not perform any of the operations, only pretend.
 |   -R,     Reinstall a package.  Equivalent to invoking cstow
 |           to install and deinstall in sequence.
+|   -S,     Install the package.
 |   -t DIR, Set the target directory to DIR.  If not
 |           specified the parent directory will be used.
 |   -v,     Be verbose, showing each operation performed.
@@ -65,6 +67,18 @@ current directory, and will install it in the parent directory.
 
 ```sh
 $ cd packages && cstow pkg
+$ [ -d d0 ]
+$ [ -d d0/d1 ]
+$ [ -L d0/f0 ]
+$ [ -L d0/d1/f1 ]
+$ rm -rf d0
+```
+
+It is not really necessary, as installing is the default action, but you can
+explicitly tell `cstow` to install a package with the `-S` flag.
+
+```sh
+$ cd packages && cstow -S pkg
 $ [ -d d0 ]
 $ [ -d d0/d1 ]
 $ [ -L d0/f0 ]
@@ -175,7 +189,7 @@ The `-D` requires an argument, the package name:
 
 ```sh
 $ cstow -D
-@ Usage: cstow [-cdDhnRtv] <package-name>
+@ Usage: cstow [-cdDhnRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
 @   -d DIR, Set the package directory to DIR.  If not
@@ -185,6 +199,7 @@ $ cstow -D
 @   -n,     Do not perform any of the operations, only pretend.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
+@   -S,     Install the package.
 @   -t DIR, Set the target directory to DIR.  If not
 @           specified the parent directory will be used.
 @   -v,     Be verbose, showing each operation performed.

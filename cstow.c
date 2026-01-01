@@ -414,7 +414,7 @@ usage(int status)
 
 	(void)fprintf(
 		stream,
-		"Usage: cstow [-cdDhnRtv] <package-name>\n"
+		"Usage: cstow [-cdDhnRStv] <package-name>\n"
 		"  -c,     Do not exit when a conflict is found, continue as if\n"
 		"          nothing happened.  This options implies -n.\n"
 		"  -d DIR, Set the package directory to DIR.  If not\n"
@@ -424,6 +424,7 @@ usage(int status)
 		"  -n,     Do not perform any of the operations, only pretend.\n"
 		"  -R,     Reinstall a package.  Equivalent to invoking cstow\n"
 		"          to install and deinstall in sequence.\n"
+		"  -S,     Install the package.\n"
 		"  -t DIR, Set the target directory to DIR.  If not\n"
 		"          specified the parent directory will be used.\n"
 		"  -v,     Be verbose, showing each operation performed.\n");
@@ -449,7 +450,7 @@ main(int argc, char **argv)
 
 	t_flag = 0;
 
-	while ((ch = getopt(argc, argv, "cd:DhnRt:v")) != -1)
+	while ((ch = getopt(argc, argv, "cd:DhnRSt:v")) != -1)
 		switch (ch) {
 		case 'c':
 			options.conflicts = options.pretend = 1;
@@ -484,6 +485,9 @@ main(int argc, char **argv)
 			break;
 		case 'R':
 			options.operation_mode = REINSTALL;
+			break;
+		case 'S':
+			options.operation_mode = INSTALL;
 			break;
 		case 't':
 			if (options.target_dir != NULL)

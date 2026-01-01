@@ -6,7 +6,7 @@
 .Nd install packages
 .Sh SYNOPSIS
 .Nm cstow
-.Op Fl cDhnrv
+.Op Fl cDhnRSv
 .Op Fl d Ar directory
 .Op Fl t Ar directory
 .Ar package
@@ -82,13 +82,20 @@ Display a summary of all available options and exit.
 .It Fl n
 Check that all the actions necessary to install a package succeed,
 but don't perform any of them.
-.It Fl r
+.It Fl R
 Reinstall a package.
 This is equivalent to running
 .Nm
 first with the
 .Fl D
 flag and immediately installing the package again.
+.It Fl S
+Install the package.
+This is the default if neither
+.Fl D
+nor
+.Fl R
+are provided.
 .It Fl v
 Be verbose.
 .Nm
