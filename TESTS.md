@@ -105,7 +105,7 @@ If no package exists with the given name, cstow will fail.
 
 ```sh
 $ cstow xyz
-@ cstow: Couldn't read dir '$(pwd)/xyz': No such file or directory
+@ cstow: couldn't read dir $(pwd)/xyz: No such file or directory
 ? 1
 ```
 

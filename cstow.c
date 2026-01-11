@@ -165,7 +165,7 @@ process_directory(char *source, char *destination)
 	dir = opendir(source);
 
 	if (!dir)
-		err(EXIT_FAILURE, "Couldn't read dir '%s'", source);
+		err(EXIT_FAILURE, "couldn't read dir %s", source);
 
 	errno = 0;
 
@@ -182,10 +182,10 @@ process_directory(char *source, char *destination)
 	}
 
 	if (errno)
-		err(EXIT_FAILURE, "couldn't read '%s' contents", source);
+		err(EXIT_FAILURE, "couldn't read %s contents", source);
 
 	if (closedir(dir) == -1)
-		err(EXIT_FAILURE, "couldn't close dir '%s'", source);
+		err(EXIT_FAILURE, "couldn't close dir %s", source);
 }
 
 static void
@@ -238,7 +238,7 @@ create_link(char *source, char *destination, char *filename)
 	assert(filename != NULL);
 
 	if (!options.pretend && chdir(destination) == -1)
-		err(EXIT_FAILURE, "%s", destination);
+		err(EXIT_FAILURE, "couldn't cd to %s", destination);
 
 	if (options.dotfiles && !strncmp("dot.", filename, 4))
 		filename += 3;
@@ -299,11 +299,13 @@ delete_link(char *destination, char *filename)
 				    full_dest);
 
 			if (chdir(destination) == -1)
-				err(EXIT_FAILURE, NULL);
+				err(EXIT_FAILURE, "couldn't cd to %s",
+				    destination);
 
 			link_target[len == PATH_MAX ? len - 1 : len] = '\0';
 			if ((abs = realpath(link_target, NULL)) == NULL)
-				err(EXIT_FAILURE, "%s", link_target);
+				err(EXIT_FAILURE, "couldn't resolve %s",
+				    link_target);
 
 			p = strstr(abs, options.source_dir);
 
@@ -532,11 +534,11 @@ main(int argc, char **argv)
 			err(EXIT_FAILURE, NULL);
 
 		if (getcwd(options.source_dir, PATH_MAX) == NULL)
-			err(EXIT_FAILURE, NULL);
+			err(EXIT_FAILURE, "couldn't read cwd");
 	}
 
 	if ((p = realpath(options.source_dir, NULL)) == NULL)
-		err(EXIT_FAILURE, "%s", options.source_dir);
+		err(EXIT_FAILURE, "couldn't resolve %s", options.source_dir);
 	free(options.source_dir);
 	options.source_dir = p;
 
@@ -548,7 +550,7 @@ main(int argc, char **argv)
 		options.target_dir = directory_name(options.source_dir);
 
 	if ((p = realpath(options.target_dir, NULL)) == NULL)
-		err(EXIT_FAILURE, "%s", options.target_dir);
+		err(EXIT_FAILURE, "couldn't resolve %s", options.target_dir);
 	free(options.target_dir);
 	options.target_dir = p;
 
