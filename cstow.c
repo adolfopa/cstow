@@ -74,7 +74,7 @@ static void detect_conflict(char *);
 static char *directory_name(char *);
 int main(int, char **);
 static void process_directory(char *, char *);
-static void process_package(char *, char *);
+static void process_package(char *, char *, char *);
 static char *relative_path(char *, char *);
 static char *stripslashes(char *);
 static void usage(int);
@@ -170,20 +170,18 @@ process_directory(char *source, char *destination)
 	dir = opendir(source);
 	if (!dir)
 		err(EXIT_FAILURE, "couldn't read dir %s", source);
-
 	errno = 0;
 	while ((entry = readdir(dir))) {
 		if (!strcmp(entry->d_name, "..") || !strcmp(entry->d_name, "."))
 			continue;
 		char *child_name = append_path(source, entry->d_name);
-
-		process_package(child_name, destination);
-
+		char *filename = entry->d_name;
+		if (options.dotfiles && !strncmp("dot.", filename, 4))
+			filename += 3;
+		process_package(child_name, destination, filename);
 		free(child_name);
-
 		errno = 0;
 	}
-
 	if (errno)
 		err(EXIT_FAILURE, "couldn't read %s contents", source);
 	if (closedir(dir) == -1)
@@ -237,8 +235,6 @@ create_link(char *source, char *destination, char *filename)
 	if (!options.pretend && chdir(destination) == -1)
 		err(EXIT_FAILURE, "couldn't cd to %s", destination);
 
-	if (options.dotfiles && !strncmp("dot.", filename, 4))
-		filename += 3;
 	link_target = append_path(destination, filename);
 	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
@@ -263,8 +259,6 @@ delete_link(char *destination, char *filename)
 	assert(destination != NULL);
 	assert(filename != NULL);
 
-	if (options.dotfiles && !strncmp("dot.", filename, 4))
-		filename += 3;
 	full_dest = append_path(destination, filename);
 	status = lstat(full_dest, &buf);
 
@@ -364,38 +358,33 @@ delete_dir(char *dirname)
 }
 
 static void
-process_package(char *source, char *destination)
+process_package(char *source, char *destination, char *filename)
 {
 	struct stat buf;
 	char *dest_dir;
-	char *dirname;
 
 	assert(source != NULL);
 	assert(destination != NULL);
+	assert(filename != NULL);
 	assert(options.operation_mode == INSTALL ||
 	       options.operation_mode == UNINSTALL);
 
 	if (lstat(source, &buf) == -1)
 		err(EXIT_FAILURE, "couldn't access file %s", source);
-	dirname = basename(source);
 
 	if (S_ISDIR(buf.st_mode)) {
-		if (options.dotfiles && !strncmp("dot.", dirname, 4))
-			dirname += 3;
-		dest_dir = append_path(destination, dirname);
-
+		dest_dir = append_path(destination, filename);
 		if (options.operation_mode == INSTALL)
 			create_dir(dest_dir, buf.st_mode);
 		process_directory(source, dest_dir);
 		if (options.operation_mode == UNINSTALL)
 			delete_dir(dest_dir);
-
 		free(dest_dir);
 	} else {
 		if (options.operation_mode == INSTALL)
-			create_link(source, destination, dirname);
+			create_link(source, destination, filename);
 		else if (options.operation_mode == UNINSTALL)
-			delete_link(destination, dirname);
+			delete_link(destination, filename);
 	}
 }
 
