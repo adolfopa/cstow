@@ -76,7 +76,18 @@ int main(int, char **);
 static void process_directory(char *, char *);
 static void process_package(char *, char *);
 static char *relative_path(char *, char *);
+static char *stripslashes(char *);
 static void usage(int);
+
+static char *
+stripslashes(char *s)
+{
+	size_t n = strlen(s);
+
+	while (s[--n] == '/')
+		s[n] = '\0';
+	return s;
+}
 
 static char *
 relative_path(char *src, char *dst)
@@ -127,8 +138,7 @@ append_path(char *s, char *t)
 	if ((result = malloc(sizeof(char) * (slen + tlen + 2))) == NULL)
 		err(EXIT_FAILURE, NULL);
 	(void)memcpy(result, s, slen);
-	if (*t != '/' && s[slen - 1] != '/')
-		result[slen] = '/';
+	result[slen] = '/';
 	(void)memcpy(result + slen + 1, t, tlen + 1);
 	result[slen + tlen + 1] = '\0';
 	return result;
@@ -418,7 +428,6 @@ main(int argc, char **argv)
 {
 	char *p;
 	int ch, t_flag;
-	size_t len;
 
 	assert(argc > 0);
 	assert(argv != NULL);
@@ -442,6 +451,7 @@ main(int argc, char **argv)
 				free(options.source_dir);
 			if ((options.source_dir = strdup(optarg)) == NULL)
 				err(EXIT_FAILURE, NULL);
+			options.source_dir = stripslashes(options.source_dir);
 
 			/*
 			 * If the target dir was set by a previous -d flag,
@@ -478,6 +488,7 @@ main(int argc, char **argv)
 				free(options.target_dir);
 			if ((options.target_dir = strdup(optarg)) == NULL)
 				err(EXIT_FAILURE, NULL);
+			options.target_dir = stripslashes(options.target_dir);
 			t_flag = 1;
 			break;
 		case 'v':
@@ -523,11 +534,7 @@ main(int argc, char **argv)
 
 	if ((options.package_name = strdup(argv[optind])) == NULL)
 		err(EXIT_FAILURE, NULL);
-
-	/* Remove trailing '/' from package name. */
-	len = strlen(options.package_name);
-	while (options.package_name[--len] == '/')
-		options.package_name[len] = '\0';
+	options.package_name = stripslashes(options.package_name);
 
 	options.package_dir = append_path(options.source_dir,
 					  options.package_name);
