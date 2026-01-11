@@ -47,20 +47,22 @@
 
 #define _GNU_SOURCE
 #include <string.h>
+#undef _GNU_SOURCE
+
 #include <unistd.h>
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
 
 struct {
-	int conflicts;
-	int verbose;
-	int pretend;
-	int dotfiles;
-	int operation_mode;
+	char *package_dir;
 	char *package_name;
 	char *source_dir;
 	char *target_dir;
-	char *package_dir;
+	int conflicts;
+	int dotfiles;
+	int operation_mode;
+	int pretend;
+	int verbose;
 } options;
 
 static char *append_path(char *, char *);
@@ -75,8 +77,6 @@ static void process_directory(char *, char *);
 static void process_package(char *, char *);
 static char *relative_path(char *, char *);
 static void usage(int);
-
-#define min(x, y) ((x) < (y) ? (x) : (y))
 
 static char *
 relative_path(char *src, char *dst)
@@ -126,16 +126,11 @@ append_path(char *s, char *t)
 	tlen = strlen(t);
 	if ((result = malloc(sizeof(char) * (slen + tlen + 2))) == NULL)
 		err(EXIT_FAILURE, NULL);
-
 	(void)memcpy(result, s, slen);
-
 	if (*t != '/' && s[slen - 1] != '/')
 		result[slen] = '/';
-
 	(void)memcpy(result + slen + 1, t, tlen + 1);
-
 	result[slen + tlen + 1] = '\0';
-
 	return result;
 }
 
@@ -163,27 +158,24 @@ process_directory(char *source, char *destination)
 	assert(destination != NULL);
 
 	dir = opendir(source);
-
 	if (!dir)
 		err(EXIT_FAILURE, "couldn't read dir %s", source);
 
 	errno = 0;
-
 	while ((entry = readdir(dir))) {
-		if (strcmp(entry->d_name, "..") && strcmp(entry->d_name, ".")) {
-			char *child_name = append_path(source, entry->d_name);
+		if (!strcmp(entry->d_name, "..") || !strcmp(entry->d_name, "."))
+			continue;
+		char *child_name = append_path(source, entry->d_name);
 
-			process_package(child_name, destination);
+		process_package(child_name, destination);
 
-			free(child_name);
+		free(child_name);
 
-			errno = 0;
-		}
+		errno = 0;
 	}
 
 	if (errno)
 		err(EXIT_FAILURE, "couldn't read %s contents", source);
-
 	if (closedir(dir) == -1)
 		err(EXIT_FAILURE, "couldn't close dir %s", source);
 }
@@ -197,7 +189,6 @@ detect_conflict(char *destination)
 	assert(destination != NULL);
 
 	status = lstat(destination, &buf);
-
 	if (status == -1 && errno != ENOENT) {
 		err(EXIT_FAILURE, "couldn't lstat file %s", destination);
 	} else if (status != -1) {
@@ -205,23 +196,19 @@ detect_conflict(char *destination)
 			char linked_file[PATH_MAX];
 			ssize_t len;
 
-			/* FIXME: a link to a link will report incorrect name.
+			/*
+			 * FIXME: a link to a link will report incorrect name.
 			 */
 			len = readlink(destination, linked_file, PATH_MAX);
-
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s",
 				    destination);
-
 			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
-
 			warnx("CONFLICT: link %s points to %s", destination,
 			      linked_file);
-		} else {
+		} else
 			warnx("CONFLICT: regular file %s already exists",
 			      destination);
-		}
-
 		if (!options.conflicts)
 			exit(EXIT_FAILURE);
 	}
@@ -243,14 +230,12 @@ create_link(char *source, char *destination, char *filename)
 	if (options.dotfiles && !strncmp("dot.", filename, 4))
 		filename += 3;
 	link_target = append_path(destination, filename);
-
 	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
 
 	detect_conflict(link_target);
 
 	rpath = relative_path(link_target, source);
-
 	if (!options.pretend && symlink(rpath, filename) == -1)
 		err(EXIT_FAILURE, "couldn't link %s to %s", rpath, filename);
 
@@ -293,7 +278,6 @@ delete_link(char *destination, char *filename)
 			ssize_t len;
 
 			len = readlink(full_dest, link_target, PATH_MAX);
-
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s",
 				    full_dest);
@@ -301,19 +285,16 @@ delete_link(char *destination, char *filename)
 			if (chdir(destination) == -1)
 				err(EXIT_FAILURE, "couldn't cd to %s",
 				    destination);
-
 			link_target[len == PATH_MAX ? len - 1 : len] = '\0';
 			if ((abs = realpath(link_target, NULL)) == NULL)
 				err(EXIT_FAILURE, "couldn't resolve %s",
 				    link_target);
 
 			p = strstr(abs, options.source_dir);
-
-			if (p == NULL || p != abs) {
+			if (p == NULL || p != abs)
 				errx(EXIT_FAILURE,
 				     "%s not a valid symlink (points to %s)",
 				     full_dest, link_target);
-			}
 
 			free(abs);
 		} else {
@@ -386,7 +367,6 @@ process_package(char *source, char *destination)
 
 	if (lstat(source, &buf) == -1)
 		err(EXIT_FAILURE, "couldn't access file %s", source);
-
 	dirname = basename(source);
 
 	if (S_ISDIR(buf.st_mode)) {
@@ -396,9 +376,7 @@ process_package(char *source, char *destination)
 
 		if (options.operation_mode == INSTALL)
 			create_dir(dest_dir, buf.st_mode);
-
 		process_directory(source, dest_dir);
-
 		if (options.operation_mode == UNINSTALL)
 			delete_dir(dest_dir);
 
@@ -408,19 +386,14 @@ process_package(char *source, char *destination)
 			create_link(source, destination, dirname);
 		else if (options.operation_mode == UNINSTALL)
 			delete_link(destination, dirname);
-		else
-			err(EXIT_FAILURE,
-			    "neither installing nor uninstalling.");
 	}
 }
 
 static void
 usage(int status)
 {
-	FILE *stream = status ? stderr : stdout;
-
 	(void)fprintf(
-		stream,
+		status ? stderr : stdout,
 		"Usage: cstow [-cdDhnoRStv] <package-name>\n"
 		"  -c,     Do not exit when a conflict is found, continue as if\n"
 		"          nothing happened.  This options implies -n.\n"
@@ -437,7 +410,6 @@ usage(int status)
 		"  -t DIR, Set the target directory to DIR.  If not\n"
 		"          specified the parent directory will be used.\n"
 		"  -v,     Be verbose, showing each operation performed.\n");
-
 	exit(status);
 }
 
@@ -479,7 +451,6 @@ main(int argc, char **argv)
 				free(options.target_dir);
 				options.target_dir = NULL;
 			}
-
 			if (options.target_dir == NULL)
 				options.target_dir = directory_name(
 					options.source_dir);
@@ -505,10 +476,8 @@ main(int argc, char **argv)
 		case 't':
 			if (options.target_dir != NULL)
 				free(options.target_dir);
-
 			if ((options.target_dir = strdup(optarg)) == NULL)
 				err(EXIT_FAILURE, NULL);
-
 			t_flag = 1;
 			break;
 		case 'v':
@@ -532,7 +501,6 @@ main(int argc, char **argv)
 		options.source_dir = malloc(sizeof(char) * PATH_MAX);
 		if (options.source_dir == NULL)
 			err(EXIT_FAILURE, NULL);
-
 		if (getcwd(options.source_dir, PATH_MAX) == NULL)
 			err(EXIT_FAILURE, "couldn't read cwd");
 	}
@@ -548,7 +516,6 @@ main(int argc, char **argv)
 	 */
 	if (options.target_dir == NULL)
 		options.target_dir = directory_name(options.source_dir);
-
 	if ((p = realpath(options.target_dir, NULL)) == NULL)
 		err(EXIT_FAILURE, "couldn't resolve %s", options.target_dir);
 	free(options.target_dir);
