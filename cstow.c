@@ -67,7 +67,8 @@ static void create_dir(char *, mode_t);
 static void create_link(char *, char *, char *);
 static void delete_dir(char *);
 static void delete_link(char *, char *);
-static void detect_conflict(char *);
+static void detect_dir_conflict(char *);
+static void detect_link_conflict(char *);
 static char *directory_name(char *);
 int main(int, char **);
 static void process_directory(char *, char *);
@@ -184,7 +185,22 @@ process_directory(char *source, char *destination)
 }
 
 static void
-detect_conflict(char *destination)
+detect_dir_conflict(char *dirname)
+{
+	struct stat buf;
+
+	assert(dirname != NULL);
+
+	if (lstat(dirname, &buf) != -1 && !S_ISDIR(buf.st_mode)) {
+		warnx("CONFLICT: %s is a file, but expected a directory",
+		      dirname);
+		if (!options.conflicts)
+			exit(EXIT_FAILURE);
+	}
+}
+
+static void
+detect_link_conflict(char *destination)
 {
 	struct stat buf;
 	int status;
@@ -224,7 +240,6 @@ static void
 create_link(char *source, char *destination, char *filename)
 {
 	char *link_target;
-	char *rpath;
 
 	assert(source != NULL);
 	assert(destination != NULL);
@@ -237,17 +252,20 @@ create_link(char *source, char *destination, char *filename)
 	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
 
-	detect_conflict(link_target);
-
-	rpath = relative_path(link_target, source);
-	if (!options.pretend) {
+	if (options.pretend)
+		detect_link_conflict(link_target);
+	else {
+		char *rpath = relative_path(link_target, source);
 		const char *target = rpath ? rpath : link_target;
-		if (symlink(target, filename) == -1)
-			err(EXIT_FAILURE, "couldn't link %s to %s", target,
-			    filename);
+		if (symlink(target, filename) == -1) {
+			if (errno != EEXIST)
+				err(EXIT_FAILURE, "couldn't link %s to %s",
+				    target, filename);
+			else
+				detect_link_conflict(link_target);
+		}
+		free(rpath);
 	}
-
-	free(rpath);
 	free(link_target);
 }
 
@@ -326,22 +344,17 @@ delete_link(char *destination, char *filename)
 static void
 create_dir(char *dirname, mode_t mode)
 {
-	struct stat buf;
-
 	assert(dirname != NULL);
-
-	if (lstat(dirname, &buf) != -1 && !S_ISDIR(buf.st_mode)) {
-		warnx("CONFLICT: %s is a file, but expected a directory",
-		      dirname);
-		if (!options.conflicts)
-			exit(EXIT_FAILURE);
-	}
 
 	if (options.verbose)
 		(void)printf("mkdir %s\n", dirname);
 
-	if (!options.pretend && mkdir(dirname, mode) == -1 && errno != EEXIST)
+	if (options.pretend)
+		detect_dir_conflict(dirname);
+	else if (mkdir(dirname, mode) == -1 && errno != EEXIST)
 		err(EXIT_FAILURE, "couldn't create directory %s", dirname);
+	else if (errno == EEXIST)
+		detect_dir_conflict(dirname);
 }
 
 static void
