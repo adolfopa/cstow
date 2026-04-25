@@ -53,7 +53,7 @@
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
 
-struct {
+static struct {
 	char *package_dir;
 	char *package_name;
 	char *source_dir;
@@ -136,29 +136,27 @@ append_path(char *s, char *t)
 
 	slen = strlen(s);
 	tlen = strlen(t);
-	if ((result = malloc(sizeof(char) * (slen + tlen + 2))) == NULL)
+	if ((result = malloc(slen + tlen + 2)) == NULL)
 		err(EXIT_FAILURE, NULL);
 	(void)memcpy(result, s, slen);
 	result[slen] = '/';
 	(void)memcpy(result + slen + 1, t, tlen + 1);
-	result[slen + tlen + 1] = '\0';
 	return result;
 }
 
 static char *
 directory_name(char *path)
 {
-	size_t len;
+	char *p;
 
 	assert(path != NULL);
 
-	if (!memcmp("/", path, 2))
+	p = strrchr(path, '/');
+	if (p == NULL)
+		return strdup(".");
+	if (p == path)
 		return strdup("/");
-	for (len = strlen(path); len > 0 && path[--len] == '/';)
-		;
-	for (; len > 0 && path[len] != '/'; len--)
-		;
-	return len == 0 ? strdup(".") : strndup(path, len);
+	return strndup(path, p - path);
 }
 
 static void
@@ -249,10 +247,12 @@ create_link(char *source, char *destination, char *filename)
 	detect_conflict(link_target);
 
 	rpath = relative_path(link_target, source);
-	if (!options.pretend &&
-	    symlink(rpath ? rpath : link_target, filename) == -1)
-		err(EXIT_FAILURE, "couldn't link %s to %s",
-		    rpath ? rpath : link_target, filename);
+	if (!options.pretend) {
+		const char *target = rpath ? rpath : link_target;
+		if (symlink(target, filename) == -1)
+			err(EXIT_FAILURE, "couldn't link %s to %s", target,
+			    filename);
+	}
 
 	free(rpath);
 	free(link_target);
@@ -287,7 +287,6 @@ delete_link(char *destination, char *filename)
 
 			char link_target[PATH_MAX];
 			char *abs;
-			char *p;
 			ssize_t len;
 
 			len = readlink(full_dest, link_target, PATH_MAX);
@@ -303,15 +302,19 @@ delete_link(char *destination, char *filename)
 				err(EXIT_FAILURE, "couldn't resolve %s",
 				    link_target);
 
-			p = strstr(abs, options.source_dir);
-			if (p == NULL || p != abs ||
+			if (strncmp(abs, options.source_dir,
+				    options.source_dir_len) != 0 ||
 			    (abs[options.source_dir_len] != '\0' &&
 			     abs[options.source_dir_len] != '/'))
 				errx(EXIT_FAILURE,
 				     "%s not a valid symlink (points to %s)",
 				     full_dest, link_target);
-
 			free(abs);
+
+			if (!options.pretend && unlink(full_dest) == -1 &&
+			    errno != ENOENT)
+				err(EXIT_FAILURE, "couldn't delete link %s",
+				    full_dest);
 		} else {
 			/*
 			 * Ignore regular files or directories with the same
@@ -321,13 +324,9 @@ delete_link(char *destination, char *filename)
 			 */
 
 			warnx("%s not a valid symlink", full_dest);
-			goto cleanup;
 		}
 	}
 
-	if (!options.pretend && unlink(full_dest) == -1 && errno != ENOENT)
-		err(EXIT_FAILURE, "couldn't delete link %s", full_dest);
-cleanup:
 	free(full_dest);
 }
 
@@ -432,13 +431,6 @@ main(int argc, char **argv)
 	assert(argc > 0);
 	assert(argv != NULL);
 
-	options.operation_mode = INSTALL;
-	options.verbose = options.pretend = options.conflicts =
-		options.dotfiles = 0;
-
-	options.source_dir = NULL;
-	options.target_dir = NULL;
-
 	t_flag = 0;
 
 	while ((ch = getopt(argc, argv, "cd:DhnoRSt:v")) != -1)
@@ -509,7 +501,7 @@ main(int argc, char **argv)
 	 * current directory.
 	 */
 	if (options.source_dir == NULL) {
-		options.source_dir = malloc(sizeof(char) * PATH_MAX);
+		options.source_dir = malloc(PATH_MAX);
 		if (options.source_dir == NULL)
 			err(EXIT_FAILURE, NULL);
 		if (getcwd(options.source_dir, PATH_MAX) == NULL)
