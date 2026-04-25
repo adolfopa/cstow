@@ -85,7 +85,7 @@ stripslashes(char *s)
 {
 	size_t n = strlen(s);
 
-	while (n && s[--n] == '/')
+	while (n > 1 && s[--n] == '/')
 		s[n] = '\0';
 	return s;
 }
