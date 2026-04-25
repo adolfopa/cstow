@@ -245,12 +245,12 @@ create_link(char *source, char *destination, char *filename)
 	assert(destination != NULL);
 	assert(filename != NULL);
 
-	if (!options.pretend && chdir(destination) == -1)
-		err(EXIT_FAILURE, "couldn't cd to %s", destination);
-
 	link_target = append_path(destination, filename);
 	if (options.verbose)
 		(void)printf("ln -s %s %s\n", source, link_target);
+
+	if (!options.pretend && chdir(destination) == -1)
+		err(EXIT_FAILURE, "couldn't cd to %s", destination);
 
 	if (options.pretend)
 		detect_link_conflict(link_target);
@@ -280,11 +280,10 @@ delete_link(char *destination, char *filename)
 	assert(filename != NULL);
 
 	full_dest = append_path(destination, filename);
-	status = lstat(full_dest, &buf);
-
 	if (options.verbose)
 		(void)printf("rm %s\n", full_dest);
 
+	status = lstat(full_dest, &buf);
 	if (status == -1 && errno != ENOENT) {
 		err(EXIT_FAILURE, "couldn't access link %s", full_dest);
 	} else if (status != -1) {
