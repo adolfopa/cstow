@@ -392,6 +392,7 @@ process_package(char *source, char *destination, char *filename)
 	assert(destination != NULL);
 	assert(filename != NULL);
 	assert(options.operation_mode == INSTALL ||
+	       options.operation_mode == REINSTALL ||
 	       options.operation_mode == UNINSTALL);
 
 	if (lstat(source, &buf) == -1)
@@ -399,17 +400,17 @@ process_package(char *source, char *destination, char *filename)
 
 	if (S_ISDIR(buf.st_mode)) {
 		dest_dir = append_path(destination, filename);
-		if (options.operation_mode == INSTALL)
+		if (options.operation_mode != UNINSTALL)
 			create_dir(dest_dir, buf.st_mode);
 		process_directory(source, dest_dir);
 		if (options.operation_mode == UNINSTALL)
 			delete_dir(dest_dir);
 		free(dest_dir);
 	} else {
-		if (options.operation_mode == INSTALL)
-			create_link(source, destination, filename);
-		else if (options.operation_mode == UNINSTALL)
+		if (options.operation_mode != INSTALL)
 			delete_link(destination, filename);
+		if (options.operation_mode != UNINSTALL)
+			create_link(source, destination, filename);
 	}
 }
 
@@ -547,14 +548,7 @@ main(int argc, char **argv)
 					  options.package_name);
 	options.package_dir_len = strlen(options.package_dir);
 
-	if (options.operation_mode == REINSTALL) {
-		options.operation_mode = UNINSTALL;
-		process_directory(options.package_dir, options.target_dir);
-		options.operation_mode = INSTALL;
-		process_directory(options.package_dir, options.target_dir);
-	} else {
-		process_directory(options.package_dir, options.target_dir);
-	}
+	process_directory(options.package_dir, options.target_dir);
 
 	free(options.package_dir);
 	free(options.package_name);
