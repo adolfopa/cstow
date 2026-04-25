@@ -28,8 +28,8 @@ $ cstow
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
-@   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
-@           with a literal \'.\' in symbolic link names.
+@   -o,     Enable dotfile translation.  Replaces the 'dot.' prefix
+@           with a literal '.' in symbolic link names.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -S,     Install the package.
@@ -53,8 +53,8 @@ $ cstow -h
 |   -D,     Delete the package instead of installing it.
 |   -h,     Show this help message.
 |   -n,     Do not perform any of the operations, only pretend.
-|   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
-|           with a literal \'.\' in symbolic link names.
+|   -o,     Enable dotfile translation.  Replaces the 'dot.' prefix
+|           with a literal '.' in symbolic link names.
 |   -R,     Reinstall a package.  Equivalent to invoking cstow
 |           to install and deinstall in sequence.
 |   -S,     Install the package.
@@ -242,8 +242,8 @@ $ cstow -D
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
-@   -o,     Enable dotfile translation.  Replaces the \'dot.\' prefix
-@           with a literal \'.\' in symbolic link names.
+@   -o,     Enable dotfile translation.  Replaces the 'dot.' prefix
+@           with a literal '.' in symbolic link names.
 @   -R,     Reinstall a package.  Equivalent to invoking cstow
 @           to install and deinstall in sequence.
 @   -S,     Install the package.

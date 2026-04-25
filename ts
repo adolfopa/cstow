@@ -4,10 +4,10 @@ function tsrun
 {
 	typeset ret
 
-	sh -c "$@" >$out 2>$err
+	sh -c "$@" >"$out" 2>"$err"
 	ret=$?
-	sed 's/^/| /' $out
-	sed 's/^/@ /' $err
+	while IFS= read -r ln; do print "| ${ln}"; done <"$out"
+	while IFS= read -r ln; do print "@ ${ln}"; done <"$err"
 	(( ret != 0 )) && print "? $ret"
 }
 
@@ -15,7 +15,7 @@ function tseval
 {
 	typeset ln
 
-	while read ln
+	while IFS= read -r ln
 	do
 		case ${ln%% *} in
 		$)
@@ -33,7 +33,7 @@ function tsexpand
 {
 	typeset ln
 
-	while read ln
+	while IFS= read -r ln
 	do
 		case ${ln%% *}
 		in
@@ -49,27 +49,26 @@ function tsexpand
 
 (( $# == 0 )) && exit 64
 
-err=$(mktemp /tmp/XXXXXXXXXX)
-out=$(mktemp /tmp/XXXXXXXXXX)
-trap "rm $err $out" HUP INT QUIT TERM
+err=$(mktemp /tmp/XXXXXXXXXX) || exit 1
+exp=$(mktemp /tmp/XXXXXXXXXX) || exit 1
+out=$(mktemp /tmp/XXXXXXXXXX) || exit 1
+trap 'rc=$?; rm -f "$err" "$exp" "$out"; exit $rc' EXIT HUP INT QUIT TERM
 
+typeset -i rc=0
 if [[ $1 = -b ]]
 then
 	(( $# == 1 )) && exit 64
 	shift
 	for fn
 	do
-		cp $fn $fn~
-		(rm $fn && tseval >$fn) <$fn
+		cp "$fn" "$fn~"
+		(rm "$fn" && tseval >"$fn") <"$fn"
 	done
 else
-	exp=$(mktemp /tmp/XXXXXXXXXX)
-	trap "rm $exp" HUP INT QUIT TERM
 	for fn
 	do
-		tsexpand <$fn >$exp
-		tseval <$fn | diff -u $exp -
+		tsexpand <"$fn" >"$exp"
+		tseval <"$fn" | diff -u "$exp" - || rc=1
 	done
-	rm $exp
 fi
-rm $err $out
+exit $rc
