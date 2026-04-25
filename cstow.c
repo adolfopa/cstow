@@ -44,11 +44,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define _GNU_SOURCE
 #include <string.h>
-#undef _GNU_SOURCE
-
 #include <unistd.h>
 
 enum mode { INSTALL, UNINSTALL, REINSTALL };
@@ -102,10 +98,6 @@ relative_path(char *src, char *dst)
 	assert(src != NULL);
 	assert(dst != NULL);
 
-	while (*src == '/')
-		src++;
-	while (*dst == '/')
-		dst++;
 	for (p = src, q = dst; *p && *q && *p == *q; p++, q++)
 		;
 	if (!*p || !*q)
@@ -113,9 +105,10 @@ relative_path(char *src, char *dst)
 	for (; p > src && q > dst && *p != '/'; p--, q--)
 		;
 	r = buffer;
-	while (*p && n > 3)
+	while (*p && n >= 3)
 		if (*++p == '/') {
-			r = mempcpy(r, "../", 3);
+			(void)memcpy(r, "../", 3);
+			r += 3;
 			n -= 3;
 		}
 	if (strlen(++q) > n)
@@ -333,7 +326,16 @@ delete_link(char *destination, char *filename)
 static void
 create_dir(char *dirname, mode_t mode)
 {
+	struct stat buf;
+
 	assert(dirname != NULL);
+
+	if (lstat(dirname, &buf) != -1 && !S_ISDIR(buf.st_mode)) {
+		warnx("CONFLICT: %s is a file, but expected a directory",
+		      dirname);
+		if (!options.conflicts)
+			exit(EXIT_FAILURE);
+	}
 
 	if (options.verbose)
 		(void)printf("mkdir %s\n", dirname);
