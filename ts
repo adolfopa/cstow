@@ -13,36 +13,25 @@ function tsrun
 
 function tseval
 {
+	typeset evout=$1
+	typeset exout=$2
 	typeset ln
 
 	while IFS= read -r ln
 	do
 		case ${ln%% *} in
 		$)
-			print "$ln"
-			tsrun "${ln#$}"
+			print "$ln" >>"$evout"
+			[[ -n $exout ]] && print "$ln" >>"$exout"
+			tsrun "${ln#$}" >>"$evout"
 			;;
-		!(\?|@|\|))
-			print "$ln"
+		\?|@|\|)
+			[[ -n $exout ]] && eval print \""$ln"\" >>"$exout"
 			;;
-		esac
-	done
-}
-
-function tsexpand
-{
-	typeset ln
-
-	while IFS= read -r ln
-	do
-		case ${ln%% *}
-		in
-			\?|@|\|)
-				eval print \""$ln"\"
-				;;
-			*)
-				print "$ln"
-				;;
+		*)
+			print "$ln" >>"$evout"
+			[[ -n $exout ]] && print "$ln" >>"$exout"
+			;;
 		esac
 	done
 }
@@ -50,11 +39,13 @@ function tsexpand
 (( $# == 0 )) && exit 64
 
 err=$(mktemp /tmp/XXXXXXXXXX) || exit 1
+evl=$(mktemp /tmp/XXXXXXXXXX) || exit 1
 exp=$(mktemp /tmp/XXXXXXXXXX) || exit 1
 out=$(mktemp /tmp/XXXXXXXXXX) || exit 1
-trap 'rc=$?; rm -f "$err" "$exp" "$out"; exit $rc' EXIT HUP INT QUIT TERM
+trap 'rc=$?; rm -f "$err" "$evl" "$exp" "$out"; exit $rc' EXIT HUP INT QUIT TERM
 
 typeset -i rc=0
+
 if [[ $1 = -b ]]
 then
 	(( $# == 1 )) && exit 64
@@ -62,13 +53,14 @@ then
 	for fn
 	do
 		cp "$fn" "$fn~"
-		(rm "$fn" && tseval >"$fn") <"$fn"
+		tseval "$evl" "" <"$fn"
+		cp "$evl" "$fn"
 	done
 else
 	for fn
 	do
-		tsexpand <"$fn" >"$exp"
-		tseval <"$fn" | diff -u "$exp" - || rc=1
+		tseval "$evl" "$exp" <"$fn"
+		diff -u "$exp" "$evl" || rc=1
 	done
 fi
 exit $rc
