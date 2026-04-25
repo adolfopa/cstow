@@ -181,6 +181,18 @@ $ cd packages && cstow -o pkg
 $ [ -f .dh/.fh ]
 $ rm -rf d0 .dh
 $ rm -rf packages/pkg/dot.dh
+
+A file named exactly `dot.` with the `-o` flag should not produce an
+empty filename (which would cause a spurious conflict on the parent
+directory).
+
+```sh
+$ rm -rf d0
+$ touch packages/pkg/d0/dot.
+$ cd packages && cstow -o pkg
+$ [ -L d0/dot. ]
+$ rm -rf d0
+$ rm packages/pkg/d0/dot.
 ```
 
 ## Unstowing packages
@@ -251,6 +263,21 @@ $ [ -f d0/.f1 ]
 $ cd packages && cstow -Do pkg
 $ [ ! -f d0/.f1 ]
 $ rm packages/pkg/d0/dot.f1
+
+The `-D` action validates that symlinks point into the package depot.
+A prefix collision (e.g. `/a/b/stow` matching `/a/b/stow-extra`) is
+correctly rejected.
+
+```sh
+$ mkdir -p packages-EVIL
+$ touch packages-EVIL/evil
+$ cstow -d packages pkg
+$ rm d0/f0
+$ ln -s $(pwd)/packages-EVIL/evil d0/f0
+$ cstow -d packages -D pkg
+@ cstow: $(pwd)/d0/f0 not a valid symlink (points to $(pwd)/packages-EVIL/evil)
+? 1
+$ rm -rf d0 packages-EVIL
 ```
 
 ## Restowing packages
@@ -309,6 +336,16 @@ target directory:
 $ mkdir d0 && touch d0/f0
 $ cstow -d packages pkg
 @ cstow: CONFLICT: regular file $(pwd)/d0/f0 already exists
+? 1
+$ rm -rf d0
+
+When a directory is found where a symlink is expected, the warning
+message says "directory" instead of "regular file":
+
+```sh
+$ mkdir -p d0/f0
+$ cstow -d packages pkg
+@ cstow: CONFLICT: directory $(pwd)/d0/f0 already exists
 ? 1
 $ rm -rf d0
 ```

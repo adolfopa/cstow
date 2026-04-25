@@ -62,6 +62,7 @@ struct {
 	int dotfiles;
 	int operation_mode;
 	int pretend;
+	int source_dir_len;
 	int verbose;
 } options;
 
@@ -84,7 +85,7 @@ stripslashes(char *s)
 {
 	size_t n = strlen(s);
 
-	while (s[--n] == '/')
+	while (n && s[--n] == '/')
 		s[n] = '\0';
 	return s;
 }
@@ -93,7 +94,7 @@ static char *
 relative_path(char *src, char *dst)
 {
 	char buffer[PATH_MAX];
-	size_t n = PATH_MAX;
+	size_t n = PATH_MAX - 1;
 	char *p;
 	char *q;
 	char *r;
@@ -151,6 +152,8 @@ directory_name(char *path)
 
 	assert(path != NULL);
 
+	if (!memcmp("/", path, 2))
+		return strdup("/");
 	for (len = strlen(path); len > 0 && path[--len] == '/';)
 		;
 	for (; len > 0 && path[len] != '/'; len--)
@@ -176,7 +179,8 @@ process_directory(char *source, char *destination)
 			continue;
 		char *child_name = append_path(source, entry->d_name);
 		char *filename = entry->d_name;
-		if (options.dotfiles && !strncmp("dot.", filename, 4))
+		if (options.dotfiles && !strncmp("dot.", filename, 4) &&
+		    filename[4])
 			filename += 3;
 		process_package(child_name, destination, filename);
 		free(child_name);
@@ -214,7 +218,10 @@ detect_conflict(char *destination)
 			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
 			warnx("CONFLICT: link %s points to %s", destination,
 			      linked_file);
-		} else
+		} else if (S_ISDIR(buf.st_mode))
+			warnx("CONFLICT: directory %s already exists",
+			      destination);
+		else
 			warnx("CONFLICT: regular file %s already exists",
 			      destination);
 		if (!options.conflicts)
@@ -242,8 +249,10 @@ create_link(char *source, char *destination, char *filename)
 	detect_conflict(link_target);
 
 	rpath = relative_path(link_target, source);
-	if (!options.pretend && symlink(rpath, filename) == -1)
-		err(EXIT_FAILURE, "couldn't link %s to %s", rpath, filename);
+	if (!options.pretend &&
+	    symlink(rpath ? rpath : link_target, filename) == -1)
+		err(EXIT_FAILURE, "couldn't link %s to %s",
+		    rpath ? rpath : link_target, filename);
 
 	free(rpath);
 	free(link_target);
@@ -295,7 +304,9 @@ delete_link(char *destination, char *filename)
 				    link_target);
 
 			p = strstr(abs, options.source_dir);
-			if (p == NULL || p != abs)
+			if (p == NULL || p != abs ||
+			    (abs[options.source_dir_len] != '\0' &&
+			     abs[options.source_dir_len] != '/'))
 				errx(EXIT_FAILURE,
 				     "%s not a valid symlink (points to %s)",
 				     full_dest, link_target);
@@ -509,6 +520,7 @@ main(int argc, char **argv)
 		err(EXIT_FAILURE, "couldn't resolve %s", options.source_dir);
 	free(options.source_dir);
 	options.source_dir = p;
+	options.source_dir_len = strlen(options.source_dir);
 
 	/*
 	 * If no target directory was given in the command line, use
