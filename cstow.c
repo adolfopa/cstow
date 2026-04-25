@@ -61,8 +61,8 @@ static struct {
 	int conflicts;
 	int dotfiles;
 	int operation_mode;
+	int package_dir_len;
 	int pretend;
-	int source_dir_len;
 	int verbose;
 } options;
 
@@ -302,10 +302,10 @@ delete_link(char *destination, char *filename)
 				err(EXIT_FAILURE, "couldn't resolve %s",
 				    link_target);
 
-			if (strncmp(abs, options.source_dir,
-				    options.source_dir_len) != 0 ||
-			    (abs[options.source_dir_len] != '\0' &&
-			     abs[options.source_dir_len] != '/'))
+			if (strncmp(abs, options.package_dir,
+				    options.package_dir_len) != 0 ||
+			    (abs[options.package_dir_len] != '\0' &&
+			     abs[options.package_dir_len] != '/'))
 				errx(EXIT_FAILURE,
 				     "%s not a valid symlink (points to %s)",
 				     full_dest, link_target);
@@ -512,7 +512,6 @@ main(int argc, char **argv)
 		err(EXIT_FAILURE, "couldn't resolve %s", options.source_dir);
 	free(options.source_dir);
 	options.source_dir = p;
-	options.source_dir_len = strlen(options.source_dir);
 
 	/*
 	 * If no target directory was given in the command line, use
@@ -531,6 +530,7 @@ main(int argc, char **argv)
 
 	options.package_dir = append_path(options.source_dir,
 					  options.package_name);
+	options.package_dir_len = strlen(options.package_dir);
 
 	if (options.operation_mode == REINSTALL) {
 		options.operation_mode = UNINSTALL;
