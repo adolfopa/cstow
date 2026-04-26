@@ -23,8 +23,8 @@ $ cstow
 @ Usage: cstow [-cdDhnoRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
-@   -d DIR, Set the package directory to DIR.  If not
-@           specified the current directory will be used.
+@   -d DIR, Set the depot to DIR.  If not specified the current
+@           directory will be used.
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
@@ -48,8 +48,8 @@ $ cstow -h
 | Usage: cstow [-cdDhnoRStv] <package-name>
 |   -c,     Do not exit when a conflict is found, continue as if
 |           nothing happened.  This options implies -n.
-|   -d DIR, Set the package directory to DIR.  If not
-|           specified the current directory will be used.
+|   -d DIR, Set the depot to DIR.  If not specified the current
+|           directory will be used.
 |   -D,     Delete the package instead of installing it.
 |   -h,     Show this help message.
 |   -n,     Do not perform any of the operations, only pretend.
@@ -105,7 +105,7 @@ If no package exists with the given name, cstow will fail.
 
 ```sh
 $ cstow xyz
-@ cstow: couldn't read dir $(pwd)/xyz: No such file or directory
+@ cstow: couldn't resolve $(pwd)/xyz: No such file or directory
 ? 1
 ```
 
@@ -181,6 +181,7 @@ $ cd packages && cstow -o pkg
 $ [ -f .dh/.fh ]
 $ rm -rf d0 .dh
 $ rm -rf packages/pkg/dot.dh
+```
 
 A file named exactly `dot.` with the `-o` flag should not produce an
 empty filename (which would cause a spurious conflict on the parent
@@ -237,8 +238,8 @@ $ cstow -D
 @ Usage: cstow [-cdDhnoRStv] <package-name>
 @   -c,     Do not exit when a conflict is found, continue as if
 @           nothing happened.  This options implies -n.
-@   -d DIR, Set the package directory to DIR.  If not
-@           specified the current directory will be used.
+@   -d DIR, Set the depot to DIR.  If not specified the current
+@           directory will be used.
 @   -D,     Delete the package instead of installing it.
 @   -h,     Show this help message.
 @   -n,     Do not perform any of the operations, only pretend.
@@ -263,6 +264,7 @@ $ [ -f d0/.f1 ]
 $ cd packages && cstow -Do pkg
 $ [ ! -f d0/.f1 ]
 $ rm packages/pkg/d0/dot.f1
+```
 
 The `-D` action validates that symlinks point into the package depot.
 A prefix collision (e.g. `/a/b/stow` matching `/a/b/stow-extra`) is
@@ -338,6 +340,7 @@ $ cstow -d packages pkg
 @ cstow: CONFLICT: regular file $(pwd)/d0/f0 already exists
 ? 1
 $ rm -rf d0
+```
 
 When a directory is found where a symlink is expected, the warning
 message says "directory" instead of "regular file":
@@ -375,6 +378,6 @@ $ cstow -d packages -v -D pkg
 
 ## Clean up
 
-```
+```sh
 $ [ -d packages ] && rm -rf packages
 ```

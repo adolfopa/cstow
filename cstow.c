@@ -146,11 +146,20 @@ directory_name(char *path)
 	assert(path != NULL);
 
 	p = strrchr(path, '/');
-	if (p == NULL)
-		return strdup(".");
-	if (p == path)
-		return strdup("/");
-	return strndup(path, p - path);
+	if (p == NULL) {
+		if ((p = strdup(".")) == NULL)
+			err(EXIT_FAILURE, NULL);
+		return p;
+	} else if (p == path) {
+		if ((p = strdup("/")) == NULL)
+			err(EXIT_FAILURE, NULL);
+		return p;
+	} else {
+		char *q = strndup(path, p - path);
+		if (q == NULL)
+			err(EXIT_FAILURE, NULL);
+		return q;
+	}
 }
 
 static void
@@ -212,7 +221,7 @@ detect_link_conflict(char *destination)
 		err(EXIT_FAILURE, "couldn't lstat file %s", destination);
 	} else if (status != -1) {
 		if (S_ISLNK(buf.st_mode)) {
-			char linked_file[PATH_MAX];
+			char linked_file[PATH_MAX + 1];
 			ssize_t len;
 
 			/*
@@ -222,7 +231,7 @@ detect_link_conflict(char *destination)
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s",
 				    destination);
-			linked_file[len == PATH_MAX ? len - 1 : len] = '\0';
+			linked_file[len] = '\0';
 			warnx("CONFLICT: link %s points to %s", destination,
 			      linked_file);
 		} else if (S_ISDIR(buf.st_mode))
@@ -295,7 +304,7 @@ delete_link(char *destination, char *filename)
 			 * doesn't point inside the package we are unstowing.
 			 */
 
-			char link_target[PATH_MAX];
+			char link_target[PATH_MAX + 1];
 			char *abs;
 			ssize_t len;
 
@@ -303,11 +312,11 @@ delete_link(char *destination, char *filename)
 			if (len == -1)
 				err(EXIT_FAILURE, "couldn't read link %s",
 				    full_dest);
+			link_target[len] = '\0';
 
 			if (chdir(destination) == -1)
 				err(EXIT_FAILURE, "couldn't cd to %s",
 				    destination);
-			link_target[len == PATH_MAX ? len - 1 : len] = '\0';
 			if ((abs = realpath(link_target, NULL)) == NULL)
 				err(EXIT_FAILURE, "couldn't resolve %s",
 				    link_target);
@@ -350,10 +359,12 @@ create_dir(char *dirname, mode_t mode)
 
 	if (options.pretend)
 		detect_dir_conflict(dirname);
-	else if (mkdir(dirname, mode) == -1 && errno != EEXIST)
-		err(EXIT_FAILURE, "couldn't create directory %s", dirname);
-	else if (errno == EEXIST)
+	else if (mkdir(dirname, mode) == -1) {
+		if (errno != EEXIST)
+			err(EXIT_FAILURE, "couldn't create directory %s",
+			    dirname);
 		detect_dir_conflict(dirname);
+	}
 }
 
 static void
@@ -421,8 +432,8 @@ usage(int status)
 		"Usage: cstow [-cdDhnoRStv] <package-name>\n"
 		"  -c,     Do not exit when a conflict is found, continue as if\n"
 		"          nothing happened.  This options implies -n.\n"
-		"  -d DIR, Set the package directory to DIR.  If not\n"
-		"          specified the current directory will be used.\n"
+		"  -d DIR, Set the depot to DIR.  If not specified the current\n"
+		"          directory will be used.\n"
 		"  -D,     Delete the package instead of installing it.\n"
 		"  -h,     Show this help message.\n"
 		"  -n,     Do not perform any of the operations, only pretend.\n"
@@ -542,9 +553,16 @@ main(int argc, char **argv)
 	if ((options.package_name = strdup(argv[optind])) == NULL)
 		err(EXIT_FAILURE, NULL);
 	options.package_name = stripslashes(options.package_name);
+	if (options.package_name[0] == '\0' ||
+	    strchr(options.package_name, '/'))
+		errx(EXIT_FAILURE, "invalid package name '%s'", argv[optind]);
 
 	options.package_dir = append_path(options.source_dir,
 					  options.package_name);
+	if ((p = realpath(options.package_dir, NULL)) == NULL)
+		err(EXIT_FAILURE, "couldn't resolve %s", options.package_dir);
+	free(options.package_dir);
+	options.package_dir = p;
 	options.package_dir_len = strlen(options.package_dir);
 
 	process_directory(options.package_dir, options.target_dir);
